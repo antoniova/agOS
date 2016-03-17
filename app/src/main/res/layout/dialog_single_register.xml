@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <EditText
+        android:id="@+id/label_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:inputType="textNoSuggestions"
+        android:maxLength="50"
+        android:hint="@string/label_hint" />
+    
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+       	android:layout_height="wrap_content" 
+       	android:orientation="horizontal">
+        <!--
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="label"
+            android:textSize="20sp"
+            />
+       	-->
+		<TextView
+	    	android:id="@+id/opcode_text"
+	    	android:layout_width="0dp"
+	    	android:layout_height="wrap_content"
+	    	android:layout_weight="1" 
+	    	android:gravity="center_horizontal"
+	    	android:textSize="20sp"/>
+	    
+    	<Spinner
+        	android:id="@+id/first_reg_spinner"
+        	android:layout_width="0dp"
+        	android:layout_height="wrap_content" 
+        	android:layout_weight="1"/>
+    
+    </LinearLayout>
+    
+    <EditText
+    	    android:id="@+id/comment_edittext"
+    	    android:layout_width="match_parent"
+    	    android:layout_height="wrap_content"
+    	    android:textSize="20sp"
+    	    android:inputType="textNoSuggestions"
+    	    android:maxLength="50"
+    	    android:hint="@string/comment_hint" />
+
+    <!-- An empty box used to create a space between -->
+    <!-- the comment box and the buttons			 -->
+    <!-- 
+    <TextView
+    	    android:id="@+id/filler_box"
+    	    android:layout_width="match_parent"
+    	    android:layout_height="wrap_content"
+    	    android:textSize="@dimen/filler_box_height"
+    	    android:text="@string/empty_string" />
+     -->
+    
+    <!-- Buttons bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" 
+        android:orientation="horizontal"
+        style="?android:attr/buttonBarStyle" >
+        	
+    	
+    	<Button
+        	android:id="@+id/cancel_button"
+        	style="?android:attr/buttonBarButtonStyle"
+        	android:layout_width="0dp"
+        	android:layout_height="wrap_content"
+        	android:layout_weight="1"       
+        	android:text="@string/cancel_button_text"
+        	android:onClick="onClickEvent"/>
+    	
+    	<Button
+        	android:id="@+id/ok_button"
+        	style="?android:attr/buttonBarButtonStyle"
+        	android:layout_width="0dp"
+        	android:layout_height="wrap_content"
+        	android:layout_weight="1"       
+        	android:text="@string/ok_button_text"
+        	android:onClick="onClickEvent"/>
+    	
+    </LinearLayout>
+    
+    
+</LinearLayout>

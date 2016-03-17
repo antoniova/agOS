@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">TestOne</string>
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="comment_hint">comment</string>
+    <string name="label_hint">label</string>
+    <string name="empty_string"></string>
+    <string name="cancel_button_text">Cancel</string>
+    <string name="ok_button_text">OK</string>
+    <string name="title_activity_grid">Select Instruction</string>
+    <string name="title_activity_argument">Enter arguments</string>
+    <!-- Menu actions -->
+    <string name="action_settings">Settings</string>
+    <string name="action_assemble">Assemble</string>
+    <string name="action_save_text_file">Save source</string>
+    <string name="action_open_text_file">Open source file</string>
+    <string name="action_save_as">Save as</string>
+    <string name ="action_refresh_file_list">Refresh</string>
+    <string name ="action_insert_line">Insert line</string>
+    <string name ="action_execute_selected">Execute</string>
+
+    <!-- The items in this array are displayed in the register
+         spinners in the argument activity.
+    -->
+    <string-array name="registers_array">
+        <item >reg 0</item>
+        <item >reg 1</item>
+        <item >reg 2</item>
+        <item >reg 3</item>
+    </string-array>
+
+    <string name="cardview_contents">This is a CardView widget. CardView widgets can have
+        shadows and rounded corners.
+        \n\nTo create a card with a shadow, use the <font fgcolor="#FFFFFFFF">android:elevation</font>
+        attribute.
+        \n\nTo set the corner radius in your layouts, use the <font
+            fgcolor="#FFFFFFFF">card_view:cardCornerRadius</font> attribute.
+    </string>
+    
+</resources>

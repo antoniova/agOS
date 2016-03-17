@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Assemble source file -->
+    <!--
+    <item
+        android:id="@+id/action_assemble"
+        android:orderInCategory="101"
+        android:title="@string/action_assemble"
+        app:showAsAction="never" />
+     -->
+
+    <!-- Execute object file -->
+    <!--
+    <item
+        android:id="@+id/action_execute_file"
+        android:orderInCategory="101"
+        android:title="@string/action_execute_file"
+        app:showAsAction="never" />
+    -->
+
+    <!-- Save source code file  -->
+    <!--
+    <item
+        android:id="@+id/action_save_text_file"
+        android:title="@string/action_save_text_file"
+        android:icon="@drawable/ic_action_save"
+        app:showAsAction="ifRoom" />
+        -->
+
+    <!-- Open source file -->
+    <!--
+    <item
+        android:id="@+id/action_open_text_file"
+        android:title="@string/action_open_text_file"
+        android:icon="@drawable/ic_action_collection"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_refresh_file_list"
+        android:title="@string/action_refresh_file_list"
+        android:icon="@drawable/ic_action_refresh"
+        app:showAsAction="ifRoom" />
+
+     -->
+
+</menu>
