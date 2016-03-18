@@ -7,8 +7,11 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.TypedValue;
@@ -44,7 +47,7 @@ import java.util.Set;
 /**
  * Created by user on 11/10/14.
  */
-public class EditorFragment extends ListFragment {
+public class EditorFragment extends Fragment {
 
     public static final String ARG_SECTION_NUMBER = "section_0";
     public static final String FRAGMENT_BAR_TITLE = "Text editor";
@@ -59,6 +62,11 @@ public class EditorFragment extends ListFragment {
     Assembler mAssembler;
     ArrayList<Short> objectCode;
     Handler mHandler;
+
+    /* the brand spaking new adapter to be used with RecyclerView */
+    CustomRecyclerViewAdapter mRecyclerAdapter;
+
+    RecyclerView mRecyclerViewList;
 
     int positionToEdit = 0;
 
@@ -94,19 +102,25 @@ public class EditorFragment extends ListFragment {
         if(SavedInstanceState != null) {
             textbuffer = SavedInstanceState.getStringArrayList(STATE_ADAPTER);
         }
+        // todo: remove
         mAdapter = new CustomEditorAdapter(getActivity(), R.layout.editor_list_item, textbuffer);
+
+
+
         if(SavedInstanceState != null) {
             sourceModified = SavedInstanceState.getBoolean("MODIFIED_SOURCE");
             hasBeenSaved = SavedInstanceState.getBoolean("FILE_HAS_BEEN_SAVED");
             currentFileName = SavedInstanceState.getString("FILE_NAME");
             selectionCount = SavedInstanceState.getInt("SELECTION_COUNT");
             multipleSelected = SavedInstanceState.getBoolean("MULTIPLE_SELECTED");
+            // todo: remove
             mAdapter.mSelections = (HashMap<Integer,Boolean>) SavedInstanceState.getSerializable("HASH_MAP");
         }
         // So this fragment can add its own menu entries
         setHasOptionsMenu(true);
 
-        setListAdapter(mAdapter);
+        // todo: remove
+        //setListAdapter(mAdapter);
 
         mHandler = new Handler(new Handler.Callback() {
             @Override
@@ -121,14 +135,16 @@ public class EditorFragment extends ListFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstance){
-        return inflater.inflate(R.layout.editor_layout, container, false);
+        // todo: change to alternative layout
+        //return inflater.inflate(R.layout.editor_layout, container, false);
+         return inflater.inflate(R.layout.editor_layout_alt, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-
+        /*
         mButton = (Button)view.findViewById(R.id.add_floating_button);
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -136,10 +152,28 @@ public class EditorFragment extends ListFragment {
                 launchGridActivity(Const.NEW_INSTRUCTION);
             }
         });
+        */
+
+        mFab = (FloatingActionButton) view.findViewById(R.id.editor_fab);
+        mFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchGridActivity(Const.NEW_INSTRUCTION);
+            }
+        });
+
+        /* get a handle on the recycler view list and set it up */
+        mRecyclerViewList = (RecyclerView) view.findViewById(R.id.editor_recycler_view);
+        mRecyclerViewList.setLayoutManager(new LinearLayoutManager(mRecyclerViewList.getContext()));
+        /* Initialize recyclerview adapter */
+        mRecyclerAdapter = new CustomRecyclerViewAdapter(getActivity(), textbuffer);
+        mRecyclerViewList.setAdapter(mRecyclerAdapter);
+
+        // todo: remove
+        //getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        //getListView().setMultiChoiceModeListener(mModeListener);
 
 
-        getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-        getListView().setMultiChoiceModeListener(mModeListener);
         // Display the current file name
         mListener.changeActionBarTitle(currentFileName, false);
     }
@@ -217,6 +251,7 @@ public class EditorFragment extends ListFragment {
         outState.putString("FILE_NAME", currentFileName);
         outState.putInt("SELECTION_COUNT", selectionCount);
         outState.putBoolean("MULTIPLE_SELECTED", multipleSelected);
+        // todo : remove
         outState.putSerializable("HASH_MAP", mAdapter.mSelections);
         super.onSaveInstanceState(outState);
     }
@@ -253,7 +288,10 @@ public class EditorFragment extends ListFragment {
         if(intent != null && resultCode == Const.RESULT_OK){
             switch (requestCode){
                 case Const.NEW_INSTRUCTION:
-                    mAdapter.add(intent.getStringExtra(Const.INSTRUCTION));
+                    // todo : remove
+                    //mAdapter.add(intent.getStringExtra(Const.INSTRUCTION));
+
+                    mRecyclerAdapter.addItem(intent.getStringExtra(Const.INSTRUCTION));
                     sourceModified = true;
                     break;
                 case Const.EDIT_INSTRUCTION:
@@ -360,11 +398,13 @@ public class EditorFragment extends ListFragment {
      * @param position the position in the ListView of the View item
      * @param id item id
      */
+    /*
     @Override
     public void onListItemClick(ListView l, View v , int position, long id){
         positionToEdit = position;
         launchGridActivity(Const.EDIT_INSTRUCTION);
     }
+    */
 
     /**
      * Deletes the selected items in the text buffer. Care must be taken
@@ -523,9 +563,12 @@ public class EditorFragment extends ListFragment {
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    Snackbar.make(v, "Item was clicked", Snackbar.LENGTH_SHORT)
+                            .setAction("Action", null).show();
                 }
             });
+
+
             // todo: need to handle selected items. ie background color and all that
 
 
