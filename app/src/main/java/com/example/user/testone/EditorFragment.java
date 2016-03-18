@@ -425,9 +425,11 @@ public class EditorFragment extends Fragment {
         mListener.changeActionBarTitle(currentFileName, sourceModified);
     }
 
+
     /**
      * The MultiChoiceModeListener implementation
      */
+    /*
     AbsListView.MultiChoiceModeListener mModeListener = new AbsListView.MultiChoiceModeListener() {
 
 
@@ -493,23 +495,25 @@ public class EditorFragment extends Fragment {
          * Here you can make any necessary updates to the activity when
          * the CAB is removed. By default, selected items are deselected/unchecked.
          * @param mode
-         */
+
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mAdapter.clearSelection();
             selectionCount = 0;
         }
     };
+    */
 
     /**
      * The new adapter to be used with the recycler view
      */
-    public static class CustomRecyclerViewAdapter extends RecyclerView.Adapter<CustomRecyclerViewAdapter.ViewHolder>{
-
+    public static class CustomRecyclerViewAdapter extends
+            RecyclerView.Adapter<CustomRecyclerViewAdapter.ViewHolder>{
 
         private final TypedValue mTypedValue = new TypedValue();
         private int mBackground;
         private List<String> mTextData;
+
 
         public static class ViewHolder extends RecyclerView.ViewHolder{
 
@@ -525,7 +529,6 @@ public class EditorFragment extends Fragment {
                 mInstruction = (TextView) view.findViewById(R.id.instruction_text);
                 mComment = (TextView) view.findViewById(R.id.comment_text);
             }
-
         }
 
         /**
@@ -548,7 +551,7 @@ public class EditorFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, int position){
+        public void onBindViewHolder(final ViewHolder holder, final int position){
             //String temp = mTextData.get(position);
             //String[] tempArray = temp.split(";");
             String [] tempArray = mTextData.get(position).split(";");
@@ -568,10 +571,16 @@ public class EditorFragment extends Fragment {
                 }
             });
 
+            holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v){
+                    Snackbar.make(v, "Item: " + Integer.toString(position) + " was long clicked.", Snackbar.LENGTH_SHORT)
+                            .setAction("Actioni", null).show();
+                    return true;
+                }
+            });
 
             // todo: need to handle selected items. ie background color and all that
-
-
 
         }
 
