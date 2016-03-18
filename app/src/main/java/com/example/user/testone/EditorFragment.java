@@ -9,7 +9,9 @@ import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ListFragment;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -34,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 
@@ -67,8 +71,6 @@ public class EditorFragment extends ListFragment {
     boolean multipleSelected = false;
 
 
-
-
     public static EditorFragment newInstance(int sectionNumber){
         EditorFragment fragment = new EditorFragment();
         Bundle args = new Bundle();
@@ -88,7 +90,7 @@ public class EditorFragment extends ListFragment {
     public void onCreate(Bundle SavedInstanceState){
         super.onCreate(SavedInstanceState);
 
-        textbuffer = new ArrayList<String>();
+        textbuffer = new ArrayList<>();
         if(SavedInstanceState != null) {
             textbuffer = SavedInstanceState.getStringArrayList(STATE_ADAPTER);
         }
@@ -458,5 +460,100 @@ public class EditorFragment extends ListFragment {
             selectionCount = 0;
         }
     };
+
+    /**
+     * The new adapter to be used with the recycler view
+     */
+    public static class CustomRecyclerViewAdapter extends RecyclerView.Adapter<CustomRecyclerViewAdapter.ViewHolder>{
+
+
+        private final TypedValue mTypedValue = new TypedValue();
+        private int mBackground;
+        private List<String> mTextData;
+
+        public static class ViewHolder extends RecyclerView.ViewHolder{
+
+            public final View mView;
+            public final TextView mLabel;
+            public final TextView mInstruction;
+            public final TextView mComment;
+
+            public ViewHolder(View view){
+                super(view);
+                mView = view;
+                mLabel = (TextView) view.findViewById(R.id.label_text);
+                mInstruction = (TextView) view.findViewById(R.id.instruction_text);
+                mComment = (TextView) view.findViewById(R.id.comment_text);
+            }
+
+        }
+
+        /**
+         * Constructor
+         * @param context
+         * @param items
+         */
+        public CustomRecyclerViewAdapter(Context context, List<String> items){
+            context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
+            mBackground = mTypedValue.resourceId;
+            mTextData = items;
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.editor_list_item, parent, false);
+            view.setBackgroundResource(mBackground);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder holder, int position){
+            //String temp = mTextData.get(position);
+            //String[] tempArray = temp.split(";");
+            String [] tempArray = mTextData.get(position).split(";");
+            try{
+                holder.mLabel.setText(tempArray[0]);
+                holder.mInstruction.setText(tempArray[1]);
+                holder.mComment.setText(tempArray[2]);
+            }catch (ArrayIndexOutOfBoundsException e){
+                Log.d("EDITOR_FRAGMENT", "array problem");
+            }
+
+            holder.mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+            // todo: need to handle selected items. ie background color and all that
+
+
+
+        }
+
+        @Override
+        public int getItemCount(){
+            return mTextData.size();
+        }
+
+
+        public void addItem(String string){
+            mTextData.add(string);
+            notifyItemInserted(mTextData.size() - 1);
+
+        }
+
+        public void removeItem(int position){
+            mTextData.remove(position);
+            notifyItemRemoved(position);
+        }
+
+        public void setItem(String string, int position){
+            mTextData.set(position, string);
+            notifyItemChanged(position);
+        }
+
+    }
 
 }
