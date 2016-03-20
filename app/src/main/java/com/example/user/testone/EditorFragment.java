@@ -9,7 +9,6 @@ import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ListFragment;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -22,9 +21,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -523,7 +520,7 @@ public class EditorFragment extends Fragment {
 
         private final TypedValue mTypedValue = new TypedValue();
         private int mBackground;
-        private int mSelectedBackground;
+        private int mItemSelectedBackground;
         private List<String> mTextData;
 
         // Used to hold the selected items when in action mode
@@ -556,7 +553,8 @@ public class EditorFragment extends Fragment {
             context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
             mBackground = mTypedValue.resourceId;
             context.getTheme().resolveAttribute(R.drawable.abc_list_pressed_holo_light, mTypedValue, true);
-            mSelectedBackground = mTypedValue.resourceId;
+            //context.getTheme().resolveAttribute(R.attr.colorControlActivated, mTypedValue, true);
+            mItemSelectedBackground = mTypedValue.resourceId;
             mTextData = items;
         }
 
@@ -589,14 +587,16 @@ public class EditorFragment extends Fragment {
 
             holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
-                public boolean onLongClick(View v) {
+                public boolean onLongClick(View view) {
+                    /* Are we in Action Mode? */
                     if (mActionMode != null) {
-                        /* We are in Action Mode. there are two possible scenarios here:
+                        /* In Action Mode. Two possible scenarios here:
                         either another view in the list has been selected, or the same view
                         has been selected again. */
                         if (!mSelectedItems.add(position)) {
                             /* Selected view already selected. Remove from selections */
                             mSelectedItems.remove(position);
+                            view.setBackgroundResource(mBackground);
                             if (mSelectedItems.isEmpty()) {
                                 mActionMode.finish();
                                 return true;
@@ -605,18 +605,19 @@ public class EditorFragment extends Fragment {
                         mActionMode.invalidate();
                         return true;
                     }
-                    /* run only once. When first entering Action Mode */
-                    mSelectedItems.add(position);
+                    /* Not in Action Mode. Enter Action Mode */
                     mActionMode = getActivity().startActionMode(mActionModeCallback);
-                    //v.setSelected(true);
+
+                    mSelectedItems.add(position);
+                    view.setBackgroundResource(mItemSelectedBackground);
                     return true;
                 }
             });
 
             // todo: need to handle selected items. ie background color and all that
             if(mSelectedItems.contains(position)){
-                //holder.mView.setBackgroundResource(mSelectedBackground);
-                holder.mView.setBackgroundResource(R.drawable.abc_list_longpressed_holo);
+                holder.mView.setBackgroundResource(mItemSelectedBackground);
+                //holder.mView.setBackgroundResource(R.drawable.abc_list_longpressed_holo);
             }else{
                 holder.mView.setBackgroundResource(mBackground);
             }
