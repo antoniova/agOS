@@ -162,14 +162,13 @@ public class EditorFragment extends Fragment {
         //mRecyclerAdapter = new CustomRecyclerViewAdapter(getActivity(), textbuffer);
         mRecyclerViewList.setAdapter(mRecyclerAdapter);
 
+        mListener.changeActionBarTitle(currentFileName, false);
         // Were we in Action Mode?
         if(savedInstanceState != null){
            if(savedInstanceState.getBoolean("ACTION_MODE_STATE")){
                mActionMode = getActivity().startActionMode(mActionModeCallback);
-               return;
            }
         }
-        mListener.changeActionBarTitle(currentFileName, false);
     }
 
     @Override
@@ -538,9 +537,9 @@ public class EditorFragment extends Fragment {
         public CustomRecyclerViewAdapter(Context context, List<String> items){
             context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
             mBackground = mTypedValue.resourceId;
-            context.getTheme().resolveAttribute(R.drawable.abc_list_pressed_holo_light, mTypedValue, true);
+            //context.getTheme().resolveAttribute(R.drawable.abc_list_pressed_holo_light, mTypedValue, true);
             //context.getTheme().resolveAttribute(R.attr.colorControlActivated, mTypedValue, true);
-            mItemSelectedBackground = mTypedValue.resourceId;
+            //mItemSelectedBackground = mTypedValue.resourceId;
             mTextData = items;
         }
 
@@ -580,7 +579,7 @@ public class EditorFragment extends Fragment {
                         either another view in the list has been selected, or the same view
                         has been selected again. */
                         if (mSelectedItems.add(position)) {
-                            view.setBackgroundResource(mItemSelectedBackground);
+                            view.setBackgroundResource(R.drawable.abc_list_longpressed_holo);
                         }else{
                             /* Selected view already selected. Remove from selections */
                             mSelectedItems.remove(position);
@@ -597,15 +596,15 @@ public class EditorFragment extends Fragment {
                     mActionMode = getActivity().startActionMode(mActionModeCallback);
 
                     mSelectedItems.add(position);
-                    view.setBackgroundResource(mItemSelectedBackground);
+                    view.setBackgroundResource(R.drawable.abc_list_longpressed_holo);
                     return true;
                 }
             });
 
             // todo: need to handle selected items. ie background color and all that
             if(mSelectedItems.contains(position)){
-                holder.mView.setBackgroundResource(mItemSelectedBackground);
-                //holder.mView.setBackgroundResource(R.drawable.abc_list_longpressed_holo);
+                //holder.mView.setBackgroundResource(mItemSelectedBackground);
+                holder.mView.setBackgroundResource(R.drawable.abc_list_longpressed_holo);
             }else{
                 holder.mView.setBackgroundResource(mBackground);
             }
