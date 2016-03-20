@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -62,6 +63,7 @@ public class EditorFragment extends Fragment {
     Assembler mAssembler;
     ArrayList<Short> objectCode;
     Handler mHandler;
+    ActionMode mActionMode;
 
     /* the brand spaking new adapter to be used with RecyclerView */
     CustomRecyclerViewAdapter mRecyclerAdapter;
@@ -70,8 +72,10 @@ public class EditorFragment extends Fragment {
 
     int positionToEdit = 0;
 
-    //These need to be saved during configuration changes
-    // (i.e., screen rotations)
+    /**
+     * The following fields need to be saved during configuration changes
+     * (i.e., screen rotations)
+     */
     boolean sourceModified = false;
     boolean hasBeenSaved = false;
     String currentFileName = "untitled";
@@ -79,6 +83,11 @@ public class EditorFragment extends Fragment {
     boolean multipleSelected = false;
 
 
+    /**
+     * Return an instance of this fragment
+     * @param sectionNumber
+     * @return
+     */
     public static EditorFragment newInstance(int sectionNumber){
         EditorFragment fragment = new EditorFragment();
         Bundle args = new Bundle();
@@ -102,10 +111,10 @@ public class EditorFragment extends Fragment {
         if(SavedInstanceState != null) {
             textbuffer = SavedInstanceState.getStringArrayList(STATE_ADAPTER);
         }
+
         // todo: remove
         mAdapter = new CustomEditorAdapter(getActivity(), R.layout.editor_list_item, textbuffer);
-
-
+        mRecyclerAdapter = new CustomRecyclerViewAdapter(getActivity(), textbuffer);
 
         if(SavedInstanceState != null) {
             sourceModified = SavedInstanceState.getBoolean("MODIFIED_SOURCE");
@@ -114,7 +123,8 @@ public class EditorFragment extends Fragment {
             selectionCount = SavedInstanceState.getInt("SELECTION_COUNT");
             multipleSelected = SavedInstanceState.getBoolean("MULTIPLE_SELECTED");
             // todo: remove
-            mAdapter.mSelections = (HashMap<Integer,Boolean>) SavedInstanceState.getSerializable("HASH_MAP");
+            //mAdapter.mSelections = (HashMap<Integer,Boolean>) SavedInstanceState.getSerializable("HASH_MAP");
+            mRecyclerAdapter.mSelectedItems = (HashSet<Integer>) SavedInstanceState.getSerializable("HASH_MAP");
         }
         // So this fragment can add its own menu entries
         setHasOptionsMenu(true);
@@ -166,7 +176,7 @@ public class EditorFragment extends Fragment {
         mRecyclerViewList = (RecyclerView) view.findViewById(R.id.editor_recycler_view);
         mRecyclerViewList.setLayoutManager(new LinearLayoutManager(mRecyclerViewList.getContext()));
         /* Initialize recyclerview adapter */
-        mRecyclerAdapter = new CustomRecyclerViewAdapter(getActivity(), textbuffer);
+        //mRecyclerAdapter = new CustomRecyclerViewAdapter(getActivity(), textbuffer);
         mRecyclerViewList.setAdapter(mRecyclerAdapter);
 
         // todo: remove
@@ -245,14 +255,15 @@ public class EditorFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState){
-        outState.putStringArrayList(STATE_ADAPTER,textbuffer);
+        outState.putStringArrayList(STATE_ADAPTER, textbuffer);
         outState.putBoolean("MODIFIED_SOURCE",sourceModified);
         outState.putBoolean("FILE_HAS_BEEN_SAVED", hasBeenSaved);
         outState.putString("FILE_NAME", currentFileName);
         outState.putInt("SELECTION_COUNT", selectionCount);
         outState.putBoolean("MULTIPLE_SELECTED", multipleSelected);
         // todo : remove
-        outState.putSerializable("HASH_MAP", mAdapter.mSelections);
+        //outState.putSerializable("HASH_MAP", mAdapter.mSelections);
+        outState.putSerializable("HASH_MAP", mRecyclerAdapter.mSelectedItems);
         super.onSaveInstanceState(outState);
     }
 
@@ -507,15 +518,20 @@ public class EditorFragment extends Fragment {
     /**
      * The new adapter to be used with the recycler view
      */
-    public static class CustomRecyclerViewAdapter extends
+    private class CustomRecyclerViewAdapter extends
             RecyclerView.Adapter<CustomRecyclerViewAdapter.ViewHolder>{
 
         private final TypedValue mTypedValue = new TypedValue();
         private int mBackground;
+        private int mSelectedBackground;
         private List<String> mTextData;
 
+        // Used to hold the selected items when in action mode
+        private HashMap<Integer, Boolean> mSelections = new HashMap<>();
+        private HashSet<Integer> mSelectedItems = new HashSet<>();
 
-        public static class ViewHolder extends RecyclerView.ViewHolder{
+
+        class ViewHolder extends RecyclerView.ViewHolder{
 
             public final View mView;
             public final TextView mLabel;
@@ -539,6 +555,8 @@ public class EditorFragment extends Fragment {
         public CustomRecyclerViewAdapter(Context context, List<String> items){
             context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
             mBackground = mTypedValue.resourceId;
+            context.getTheme().resolveAttribute(R.drawable.abc_list_pressed_holo_light, mTypedValue, true);
+            mSelectedBackground = mTypedValue.resourceId;
             mTextData = items;
         }
 
@@ -546,14 +564,12 @@ public class EditorFragment extends Fragment {
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.editor_list_item, parent, false);
-            view.setBackgroundResource(mBackground);
+            //view.setBackgroundResource(mBackground);
             return new ViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, final int position){
-            //String temp = mTextData.get(position);
-            //String[] tempArray = temp.split(";");
             String [] tempArray = mTextData.get(position).split(";");
             try{
                 holder.mLabel.setText(tempArray[0]);
@@ -566,21 +582,44 @@ public class EditorFragment extends Fragment {
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Snackbar.make(v, "Item was clicked", Snackbar.LENGTH_SHORT)
+                    Snackbar.make(v, "Item: " + Integer.toString(position) + " clicked", Snackbar.LENGTH_SHORT)
                             .setAction("Action", null).show();
                 }
             });
 
             holder.mView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
-                public boolean onLongClick(View v){
-                    Snackbar.make(v, "Item: " + Integer.toString(position) + " was long clicked.", Snackbar.LENGTH_SHORT)
-                            .setAction("Actioni", null).show();
+                public boolean onLongClick(View v) {
+                    if (mActionMode != null) {
+                        /* We are in Action Mode. there are two possible scenarios here:
+                        either another view in the list has been selected, or the same view
+                        has been selected again. */
+                        if (!mSelectedItems.add(position)) {
+                            /* Selected view already selected. Remove from selections */
+                            mSelectedItems.remove(position);
+                            if (mSelectedItems.isEmpty()) {
+                                mActionMode.finish();
+                                return true;
+                            }
+                        }
+                        mActionMode.invalidate();
+                        return true;
+                    }
+                    /* run only once. When first entering Action Mode */
+                    mSelectedItems.add(position);
+                    mActionMode = getActivity().startActionMode(mActionModeCallback);
+                    //v.setSelected(true);
                     return true;
                 }
             });
 
             // todo: need to handle selected items. ie background color and all that
+            if(mSelectedItems.contains(position)){
+                //holder.mView.setBackgroundResource(mSelectedBackground);
+                holder.mView.setBackgroundResource(R.drawable.abc_list_longpressed_holo);
+            }else{
+                holder.mView.setBackgroundResource(mBackground);
+            }
 
         }
 
@@ -596,7 +635,7 @@ public class EditorFragment extends Fragment {
 
         }
 
-        public void removeItem(int position){
+        public void removeItem(int position) {
             mTextData.remove(position);
             notifyItemRemoved(position);
         }
@@ -606,6 +645,70 @@ public class EditorFragment extends Fragment {
             notifyItemChanged(position);
         }
 
+        public void clearSelections(){
+            for(int pos : mSelectedItems){
+                notifyItemChanged(pos);
+            }
+            mSelections.clear();
+        }
+
+        public Set<Integer> getSelections(){
+            return mSelections.keySet();
+        }
+
+        public boolean multipleItemsSelected(){
+            return (mSelectedItems.size() > 1);
+        }
+
     }
+
+    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+
+        // Called when the action mode is created; startActionMode() was called
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            // Inflate a menu resource providing context menu items
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.context_one_selection, menu);
+            return true;
+        }
+
+        // Called each time the action mode is shown. Always called after onCreateActionMode, but
+        // may be called multiple times if the mode is invalidated.
+        // Return false if nothing is done
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            menu.clear();
+            if(mRecyclerAdapter.multipleItemsSelected()){
+                mode.getMenuInflater().inflate(R.menu.context_many_selections, menu);
+            }else{
+                mode.getMenuInflater().inflate(R.menu.context_one_selection, menu);
+            }
+            return true;
+        }
+
+        // Called when the user selects a contextual menu item
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            /*
+            switch (item.getItemId()) {
+                case R.id.menu_share:
+                    shareCurrentItem();
+                    mode.finish(); // Action picked, so close the CAB
+                    return true;
+                default:
+                    return false;
+            }
+            */
+            return true;
+        }
+
+        // Called when the user exits the action mode
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            mActionMode = null;
+            //mRecyclerAdapter.clearSelections();
+        }
+    };
 
 }

@@ -8,6 +8,7 @@
     </style>
 
 
+    <!-- No longer used -->
     <style name="AppTheme" parent="@style/Theme.AppCompat.Light.NoActionBar">
 
         <item name="windowActionModeOverlay">true</item>

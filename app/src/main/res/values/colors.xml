@@ -27,6 +27,7 @@
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>
 
+    <color name="action_mode_color">#727272</color>
 
 
 </resources>
