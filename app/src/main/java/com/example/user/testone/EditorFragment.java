@@ -2,6 +2,7 @@ package com.example.user.testone;
 
 //import android.app.ListFragment;
 import android.app.Activity;
+import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -53,7 +54,6 @@ public class EditorFragment extends Fragment {
 
     PageFragmentListener mListener;
     OnFileActionListener assemblerListener;
-    Button mButton;
     FloatingActionButton mFab;
     ArrayList<String> textbuffer;
     CustomEditorAdapter mAdapter;
@@ -119,16 +119,12 @@ public class EditorFragment extends Fragment {
             currentFileName = SavedInstanceState.getString("FILE_NAME");
             selectionCount = SavedInstanceState.getInt("SELECTION_COUNT");
             multipleSelected = SavedInstanceState.getBoolean("MULTIPLE_SELECTED");
-            // todo: remove
-            //mAdapter.mSelections = (HashMap<Integer,Boolean>) SavedInstanceState.getSerializable("HASH_MAP");
             mRecyclerAdapter.mSelectedItems = (HashSet<Integer>) SavedInstanceState.getSerializable("HASH_MAP");
         }
         // So this fragment can add its own menu entries
         setHasOptionsMenu(true);
 
-        // todo: remove
-        //setListAdapter(mAdapter);
-
+        // I can't remember why this is here
         mHandler = new Handler(new Handler.Callback() {
             @Override
             public boolean handleMessage(Message msg){
@@ -151,16 +147,6 @@ public class EditorFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        /*
-        mButton = (Button)view.findViewById(R.id.add_floating_button);
-        mButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                launchGridActivity(Const.NEW_INSTRUCTION);
-            }
-        });
-        */
-
         mFab = (FloatingActionButton) view.findViewById(R.id.editor_fab);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -176,12 +162,13 @@ public class EditorFragment extends Fragment {
         //mRecyclerAdapter = new CustomRecyclerViewAdapter(getActivity(), textbuffer);
         mRecyclerViewList.setAdapter(mRecyclerAdapter);
 
-        // todo: remove
-        //getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-        //getListView().setMultiChoiceModeListener(mModeListener);
-
-
-        // Display the current file name
+        // Were we in Action Mode?
+        if(savedInstanceState != null){
+           if(savedInstanceState.getBoolean("ACTION_MODE_STATE")){
+               mActionMode = getActivity().startActionMode(mActionModeCallback);
+               return;
+           }
+        }
         mListener.changeActionBarTitle(currentFileName, false);
     }
 
@@ -251,16 +238,15 @@ public class EditorFragment extends Fragment {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState){
+    public void onSaveInstanceState(Bundle outState) {
         outState.putStringArrayList(STATE_ADAPTER, textbuffer);
         outState.putBoolean("MODIFIED_SOURCE",sourceModified);
         outState.putBoolean("FILE_HAS_BEEN_SAVED", hasBeenSaved);
         outState.putString("FILE_NAME", currentFileName);
         outState.putInt("SELECTION_COUNT", selectionCount);
         outState.putBoolean("MULTIPLE_SELECTED", multipleSelected);
-        // todo : remove
-        //outState.putSerializable("HASH_MAP", mAdapter.mSelections);
         outState.putSerializable("HASH_MAP", mRecyclerAdapter.mSelectedItems);
+        outState.putBoolean("ACTION_MODE_STATE", (mActionMode != null) );
         super.onSaveInstanceState(outState);
     }
 
@@ -593,7 +579,9 @@ public class EditorFragment extends Fragment {
                         /* In Action Mode. Two possible scenarios here:
                         either another view in the list has been selected, or the same view
                         has been selected again. */
-                        if (!mSelectedItems.add(position)) {
+                        if (mSelectedItems.add(position)) {
+                            view.setBackgroundResource(mItemSelectedBackground);
+                        }else{
                             /* Selected view already selected. Remove from selections */
                             mSelectedItems.remove(position);
                             view.setBackgroundResource(mBackground);
@@ -646,11 +634,13 @@ public class EditorFragment extends Fragment {
             notifyItemChanged(position);
         }
 
+        /** Invoked when exiting from Action Mode using the back button. Will clear
+         * all selections and force a full re-binding.
+         */
         public void clearSelections(){
-            for(int pos : mSelectedItems){
-                notifyItemChanged(pos);
-            }
-            mSelections.clear();
+            mSelectedItems.clear();
+            // Full re-binding. Not most the efficient.
+            notifyDataSetChanged();
         }
 
         public Set<Integer> getSelections(){
@@ -661,6 +651,9 @@ public class EditorFragment extends Fragment {
             return (mSelectedItems.size() > 1);
         }
 
+        public boolean hasSelections(){
+            return !mSelectedItems.isEmpty();
+        }
     }
 
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
@@ -708,7 +701,10 @@ public class EditorFragment extends Fragment {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
-            //mRecyclerAdapter.clearSelections();
+            if(mRecyclerAdapter.hasSelections()){
+                mRecyclerAdapter.clearSelections();
+            }
+
         }
     };
 
