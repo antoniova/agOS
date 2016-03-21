@@ -305,7 +305,7 @@ public class EditorFragment extends Fragment {
      * @param file
      */
     public void openNewFile(final String file){
-        loadTextFile(file);
+        loadFile(file);
         currentFileName = file;
         sourceModified = false;
         hasBeenSaved = true;
@@ -347,18 +347,20 @@ public class EditorFragment extends Fragment {
     }
 
     /**
-     * Opens the file specified in the parameter and
+     * Opens the file specified in {@code filename} and
      * fills the text file buffer.
      * @param filename   The name of the file to open
      */
-    void loadTextFile(String filename){
+    void loadFile(String filename){
         mAdapter.clear();
         try {
             FileInputStream fis = getActivity().openFileInput(filename);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
             String line;
-            while ((line = reader.readLine()) != null)
-                mAdapter.add(line);
+            while ((line = reader.readLine()) != null){
+                mRecyclerAdapter.addItem(line);
+                //mAdapter.add(line);
+            }
             reader.close();
             fis.close();
         } catch (IOException e) {
@@ -500,49 +502,81 @@ public class EditorFragment extends Fragment {
      */
     private class CustomRecyclerViewAdapter extends
             RecyclerView.Adapter<CustomRecyclerViewAdapter.ViewHolder>{
-
-        private final TypedValue mTypedValue = new TypedValue();
-        private int mBackground;
-        private int mItemSelectedBackground;
+        /**
+         * The textual (source code) data in the text editor
+         */
         private List<String> mTextData;
 
-        // Used to hold the selected items when in action mode
-        private HashMap<Integer, Boolean> mSelections = new HashMap<>();
+        /**
+         * Keeps track of the selected list view items when in action mode
+         */
         private HashSet<Integer> mSelectedItems = new HashSet<>();
 
 
-        class ViewHolder extends RecyclerView.ViewHolder{
+        public CustomRecyclerViewAdapter(Context context, List<String> items){
+            mTextData = items;
+        }
 
-            public final View mRootView;
-            public final TextView mLabel;
-            public final TextView mInstruction;
-            public final TextView mComment;
+
+        class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
+        View.OnLongClickListener{
+
+            private final View mRootView;
+            private final TextView mLabel;
+            private final TextView mInstruction;
+            private final TextView mComment;
 
             public ViewHolder(View view){
                 super(view);
                 mRootView = view;
+                mRootView.setOnClickListener(this);
+                mRootView.setOnLongClickListener(this);
                 mLabel = (TextView) view.findViewById(R.id.label_text);
                 mInstruction = (TextView) view.findViewById(R.id.instruction_text);
                 mComment = (TextView) view.findViewById(R.id.comment_text);
             }
-        }
 
-        /**
-         * Constructor
-         * @param context
-         * @param items
-         */
-        public CustomRecyclerViewAdapter(Context context, List<String> items){
-            //context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
-            //mBackground = mTypedValue.resourceId;
-            mTextData = items;
-        }
+            /**
+             * Invoked when an item list view is clicked
+             * @param view the view that was clicked
+             */
+            @Override
+            public void onClick(View view){
+
+            }
+
+            /**
+             * Invoked when an item list view is long-clicked
+              * @param view  the view that was long-clicked
+             * @return  return true if action was taken. Always true.
+             */
+            @Override
+            public boolean onLongClick(View view){
+                if (mActionMode != null) {
+                    // In Action Mode. Two possible scenarios here:
+                    // either another item view in the list has been selected,
+                    // or the same item view has been selected again.
+                    if (!mSelectedItems.add(getAdapterPosition())) {
+                        mSelectedItems.remove(getAdapterPosition());
+                    }
+                    view.setSelected(mSelectedItems.contains(getAdapterPosition()));
+                    mActionMode.invalidate();
+                    if (mSelectedItems.isEmpty()){
+                        mActionMode.finish();
+                    }
+                } else {
+                    // Not in Action Mode. Enter Action Mode and add selection
+                    mActionMode = getActivity().startActionMode(mActionModeCallback);
+                    view.setSelected(mSelectedItems.add(getAdapterPosition()));
+                }
+                return true;
+            }
+        } // end of ViewHolder class
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.editor_list_item, parent, false);
-            //view.setBackgroundResource(mBackground);
             return new ViewHolder(view);
         }
 
@@ -556,59 +590,13 @@ public class EditorFragment extends Fragment {
             }catch (ArrayIndexOutOfBoundsException e){
                 Log.d("EDITOR_FRAGMENT", "array problem");
             }
-
-            holder.mRootView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Snackbar.make(v, "Item: " + Integer.toString(position) + " clicked", Snackbar.LENGTH_SHORT)
-                            .setAction("Action", null).show();
-                }
-            });
-
-            holder.mRootView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    /* Are we in Action Mode? */
-                    if (mActionMode != null) {
-                        /* In Action Mode. Two possible scenarios here:
-                        either another view in the list has been selected, or the same view
-                        has been selected again. */
-                        if (mSelectedItems.add(position)) {
-                            view.setSelected(true);
-                        } else {
-                            /* Selected view already selected. Remove from selections */
-                            mSelectedItems.remove(position);
-                            view.setSelected(false);
-                            if (mSelectedItems.isEmpty()) {
-                                mActionMode.finish();
-                                return true;
-                            }
-                        }
-                        mActionMode.invalidate();
-                        return true;
-                    }
-                    /* Not in Action Mode. Enter Action Mode */
-                    mActionMode = getActivity().startActionMode(mActionModeCallback);
-
-                    mSelectedItems.add(position);
-                    view.setSelected(true);
-                    return true;
-                }
-            });
-
-            if(mSelectedItems.contains(position)){
-                holder.mRootView.setSelected(true);
-            }else{
-                holder.mRootView.setSelected(false);
-            }
-
+            holder.mRootView.setSelected(mSelectedItems.contains(position));
         }
 
         @Override
         public int getItemCount(){
             return mTextData.size();
         }
-
 
         public void addItem(String string){
             mTextData.add(string);
@@ -626,17 +614,14 @@ public class EditorFragment extends Fragment {
             notifyItemChanged(position);
         }
 
-        /** Invoked when exiting from Action Mode using the back button. Will clear
-         * all selections and force a full re-binding.
+        /**
+         * Invoked when exiting Action Mode using the back button. Clears
+         * all selections and forces a full re-binding.
          */
         public void clearSelections(){
             mSelectedItems.clear();
             // Full re-binding. Not most the efficient.
             notifyDataSetChanged();
-        }
-
-        public Set<Integer> getSelections(){
-            return mSelections.keySet();
         }
 
         public boolean multipleItemsSelected(){
@@ -693,7 +678,7 @@ public class EditorFragment extends Fragment {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
-            if(mRecyclerAdapter.hasSelections()){
+            if (mRecyclerAdapter.hasSelections()){
                 mRecyclerAdapter.clearSelections();
             }
         }
