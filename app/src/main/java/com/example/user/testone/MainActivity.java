@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends ActionBarActivity implements PageFragmentListener, OnFileActionListener {
+public class MainActivity extends AppCompatActivity implements PageFragmentListener, OnFileActionListener {
 
     static final int EDITOR_FRAGMENT = 0;
     static final int BROWSER_FRAGMENT = 1;
@@ -72,8 +73,6 @@ public class MainActivity extends ActionBarActivity implements PageFragmentListe
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
-
         mViewPager = (ViewPager) findViewById(R.id.pager);
 
         // Create the adapter that will return a fragment for each of the three
@@ -87,7 +86,6 @@ public class MainActivity extends ActionBarActivity implements PageFragmentListe
 
         mHandler = new ExtendedHandler(this);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -103,7 +101,6 @@ public class MainActivity extends ActionBarActivity implements PageFragmentListe
         // as you specify a parent activity in AndroidManifest.xml.
         return super.onOptionsItemSelected(item);
     }
-
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -163,7 +160,6 @@ public class MainActivity extends ActionBarActivity implements PageFragmentListe
         else
             getSupportActionBar().setTitle(bar_title);
     }
-
 
     /**
      * Callback method invoked by the FileBrowserFragment class when the user
@@ -318,7 +314,6 @@ public class MainActivity extends ActionBarActivity implements PageFragmentListe
             Toast.makeText(getApplicationContext(), "There's nothing to compile", Toast.LENGTH_SHORT).show();
             return;
         }
-
         Assembler mAssembler = new Assembler(this, textBuffer, fileName, mHandler);
         try{
             Thread thread = new Thread(mAssembler, "Assembler_Thread");
@@ -326,9 +321,6 @@ public class MainActivity extends ActionBarActivity implements PageFragmentListe
         }catch(NullPointerException e){
             e.printStackTrace();
         }
-
-
-
     }
 
     private static class ExtendedHandler extends Handler{

@@ -151,7 +151,7 @@ public class FileBrowserFragment extends ListFragment {
 
     /**
      * Called when one of the files listed is clicked. Calls the editGivenFile callback
-     * implemented in MainActivity; or the executeGiveFile callback
+     * implemented in MainActivity or the executeGiveFile callback
      * for single-mode object file execution
      */
     @Override

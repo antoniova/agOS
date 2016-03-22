@@ -55,11 +55,9 @@ public class EditorFragment extends Fragment {
 
     PageFragmentListener mListener;
     OnFileActionListener assemblerListener;
-    FloatingActionButton mFab;
     ArrayList<String> textbuffer;
     CustomEditorAdapter mAdapter;
     Assembler mAssembler;
-    ArrayList<Short> objectCode;
     Handler mHandler;
     ActionMode mActionMode;
 
@@ -70,7 +68,7 @@ public class EditorFragment extends Fragment {
 
     RecyclerView mRecyclerViewList;
 
-    int positionToEdit = 0;
+    private int positionToEdit = 0;
 
     /**
      * The following fields need to be saved during configuration changes
@@ -150,8 +148,8 @@ public class EditorFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mFab = (FloatingActionButton) view.findViewById(R.id.editor_fab);
-        mFab.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.editor_fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 launchGridActivity(Const.NEW_INSTRUCTION);
@@ -285,20 +283,17 @@ public class EditorFragment extends Fragment {
             switch (requestCode){
                 case Const.NEW_INSTRUCTION:
                     mRecyclerAdapter.addItem(intent.getStringExtra(Const.INSTRUCTION));
-                    sourceModified = true;
                     break;
                 case Const.EDIT_INSTRUCTION:
+                    // todo: update with new adapter
                     textbuffer.set(positionToEdit, intent.getStringExtra(Const.INSTRUCTION));
                     mAdapter.notifyDataSetChanged();
-                    sourceModified = true;
                     break;
                 case Const.SAVE_SOURCE_FILE:
                     writeToDisk(intent.getStringExtra(Const.RETURN_MSG));
-                    sourceModified = false;
-                    currentFileName = intent.getStringExtra(Const.RETURN_MSG);
-                    hasBeenSaved = true;
+                    return;
             }
-            mListener.changeActionBarTitle(currentFileName, sourceModified);
+            mListener.changeActionBarTitle(currentFileName, sourceModified = true);
         }
     }
 
@@ -316,36 +311,21 @@ public class EditorFragment extends Fragment {
     void saveTextFileAction(){
         if(hasBeenSaved) {
             writeToDisk(currentFileName);
-            sourceModified = false;
-            mListener.changeActionBarTitle(currentFileName, sourceModified);
+            //sourceModified = false;
+            //mListener.changeActionBarTitle(currentFileName, sourceModified);
         }else{
             showFileActionDialog(Const.SAVE_SOURCE_DIALOG, Const.SAVE_SOURCE_FILE);
         }
     }
 
     /**
-     * Writes the file currently shown on the screen to disk.
+     * Writes the contents of the editor text buffer to disk using the name
+     * given in filename parameter.
      * @param filename  The name of the file to save
      */
     void writeToDisk(final String filename){
         // Disk I/O is a good candidate for concurrency
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try{
-                    FileOutputStream fos = getActivity().openFileOutput(filename, Context.MODE_PRIVATE);
-                    for(String line : textbuffer){
-                        fos.write( (line + "\n").getBytes() );
-                    }
-                    fos.close();
-                }catch(IOException e){
-                    Toast.makeText(getActivity(), "Unable to save file", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        thread.start();
-        Toast.makeText(getActivity(), "saved " + filename, Toast.LENGTH_SHORT).show();
-
+        new WriteFileTask().execute(filename);
     }
 
     /**
@@ -704,22 +684,33 @@ public class EditorFragment extends Fragment {
      */
     private class WriteFileTask extends AsyncTask<String, Void, Boolean>{
 
+        private String fileName;
+
         protected Boolean doInBackground(String... arg){
+            boolean success = true;
+            fileName = arg[0];
             try{
-                FileOutputStream fos = getActivity().openFileOutput(arg[0], Context.MODE_PRIVATE);
+                FileOutputStream fos = getActivity().openFileOutput(fileName, Context.MODE_PRIVATE);
                 for(String line : textbuffer){
                     fos.write( (line + "\n").getBytes() );
                 }
                 fos.close();
             }catch(IOException e){
-                Toast.makeText(getActivity(), "Unable to save file", Toast.LENGTH_SHORT).show();
-                return false;
+                success = false;
             }
-            return true;
+            return success;
         }
 
         protected void onPostExecute(Boolean result){
-
+            if(result){
+                Toast.makeText(getActivity(), "Saved file: " + fileName, Toast.LENGTH_SHORT)
+                        .show();
+                hasBeenSaved = true;
+                mListener.changeActionBarTitle(currentFileName = fileName,sourceModified = false);
+            } else {
+                Toast.makeText(getActivity(), "Unable to save file:" + fileName, Toast.LENGTH_SHORT)
+                        .show();
+            }
         }
     }
 
