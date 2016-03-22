@@ -31,7 +31,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,11 +53,8 @@ public class EditorFragment extends Fragment {
     public static final String STATE_ADAPTER =  "adapter_array";
 
     PageFragmentListener mListener;
-    OnFileActionListener assemblerListener;
-    ArrayList<String> textbuffer;
+    private ArrayList<String> textbuffer;
     CustomEditorAdapter mAdapter;
-    Assembler mAssembler;
-    Handler mHandler;
     ActionMode mActionMode;
 
     /**
@@ -124,17 +120,6 @@ public class EditorFragment extends Fragment {
         }
         // So this fragment can add its own menu entries
         setHasOptionsMenu(true);
-
-        // I can't remember why this is here
-        mHandler = new Handler(new Handler.Callback() {
-            @Override
-            public boolean handleMessage(Message msg){
-                String txt = (String) msg.obj;
-                Toast.makeText(getActivity(), txt, Toast.LENGTH_SHORT).show();
-                return true;
-            }
-        });
-
     }
 
     @Override
@@ -189,7 +174,7 @@ public class EditorFragment extends Fragment {
 
 
     /**
-     * Handles the menu and actionbar actions. Technically, this
+     * Handles the menu and actionbar actions. This
      * gets called only after the main activity's own onOptionsItemSelected
      * is called. All the actions not handled in the main activity are handled here
      * @param item    The action selected in the menu or action bar
@@ -198,43 +183,14 @@ public class EditorFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()){
-            case R.id.action_assemble:
-                //assembleFile();
-                assemblerListener.assembleFile(textbuffer, currentFileName);
-                break;
             case R.id.action_save_text_file:
                 saveTextFileAction();
                 break;
             case R.id.action_save_text_file_as:
                 showFileActionDialog(Const.SAVE_SOURCE_DIALOG, Const.SAVE_SOURCE_FILE);
                 break;
-            case R.id.action_test:
-                doFileTest();
-
         }
-
         return true;
-    }
-
-    public void doFileTest(){
-        File mfile = getActivity().getFileStreamPath("det.o");
-        try{
-            RandomAccessFile file;
-            file = new RandomAccessFile(mfile, "r");
-            //String l= file.readLine();
-            //Short i = file.readShort();
-            Short i = file.readShort();
-            //Toast.makeText(getActivity(), size.toString(), Toast.LENGTH_SHORT).show();
-            Log.d("MYTAG" , i.toString());
-            i= file.readShort();
-            Log.d("MYTAG" , i.toString());
-            file.close();
-        }catch (FileNotFoundException e){
-            e.printStackTrace();
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
     }
 
     @Override
@@ -311,8 +267,6 @@ public class EditorFragment extends Fragment {
     void saveTextFileAction(){
         if(hasBeenSaved) {
             writeToDisk(currentFileName);
-            //sourceModified = false;
-            //mListener.changeActionBarTitle(currentFileName, sourceModified);
         }else{
             showFileActionDialog(Const.SAVE_SOURCE_DIALOG, Const.SAVE_SOURCE_FILE);
         }
@@ -362,7 +316,6 @@ public class EditorFragment extends Fragment {
         try{
             // Instantiate the PageFragmentListener so we can send events to the host
             mListener = (PageFragmentListener) activity;
-            assemblerListener = (OnFileActionListener) activity;
         }catch(ClassCastException e){
             // The activity doesn't implement the callback interface, throw exception
             throw new ClassCastException(activity.toString() +
@@ -405,6 +358,21 @@ public class EditorFragment extends Fragment {
         mListener.changeActionBarTitle(currentFileName, sourceModified);
     }
 
+    /**
+     * Returns the editor's text buffer
+     * @return  the editor text buffer
+     */
+    public List<String> getTextBuffer(){
+        return textbuffer;
+    }
+
+    /**
+     * Returns the current file name
+     * @return  the name of the currently open file
+     */
+    public String getCurrentFileName(){
+        return currentFileName;
+    }
 
     /**
      * The MultiChoiceModeListener implementation

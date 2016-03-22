@@ -10,13 +10,6 @@ tools:context=".MainActivity">
         android:icon="@drawable/ic_action_save"
         app:showAsAction="ifRoom" />
 
-    <!-- Assemble source file -->
-    <item
-        android:id="@+id/action_assemble"
-        android:orderInCategory="101"
-        android:title="@string/action_assemble"
-        app:showAsAction="never" />
-
     <!-- Open source file -->
 
     <item
@@ -24,13 +17,5 @@ tools:context=".MainActivity">
         android:title="@string/action_save_as"
         android:icon="@drawable/ic_action_collection"
         app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_test"
-        android:title= "test"
-        android:icon="@drawable/ic_action_collection"
-        app:showAsAction="never" />
-
-
 
 </menu>

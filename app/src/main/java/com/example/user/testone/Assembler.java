@@ -86,7 +86,7 @@ public class Assembler implements Runnable {
     Handler.Callback mEvent;
 
     // Constructor
-    Assembler(Context context, ArrayList<String> code, String name, Handler handler){
+    Assembler(Context context, List<String> code, String name, Handler handler){
         mContext = context;
         fileName = name;
         inSecondPass = false;

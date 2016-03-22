@@ -2,6 +2,7 @@ package com.example.user.testone;
 
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -99,6 +100,11 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+        switch (item.getItemId()){
+            case R.id.action_assemble_second:
+                assembleSourceCode();
+                return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -309,17 +315,21 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
     };
 
 
-    public void assembleFile(ArrayList<String> textBuffer, String fileName){
-        if(textBuffer.isEmpty()){
-            Toast.makeText(getApplicationContext(), "There's nothing to compile", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Assembler mAssembler = new Assembler(this, textBuffer, fileName, mHandler);
-        try{
-            Thread thread = new Thread(mAssembler, "Assembler_Thread");
-            thread.start();
-        }catch(NullPointerException e){
-            e.printStackTrace();
+    public void assembleSourceCode(){
+        editorHandle = (EditorFragment) getFragmentFromPager(EDITOR_FRAGMENT);
+        if (editorHandle != null){
+            if (editorHandle.getTextBuffer().isEmpty()){
+                Toast.makeText(getApplicationContext(), "There's nothing to compile", Toast.LENGTH_SHORT).show();
+            } else {
+                Assembler mAssembler = new Assembler(this, editorHandle.getTextBuffer(),
+                        editorHandle.getCurrentFileName(), mHandler);
+                try{
+                    Thread thread = new Thread(mAssembler, "Assembler_Thread");
+                    thread.start();
+                }catch(NullPointerException e){
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
