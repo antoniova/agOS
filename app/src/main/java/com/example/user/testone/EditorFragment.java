@@ -4,8 +4,10 @@ package com.example.user.testone;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -13,7 +15,6 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,7 +24,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,10 +34,13 @@ import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
 
@@ -60,8 +63,10 @@ public class EditorFragment extends Fragment {
     Handler mHandler;
     ActionMode mActionMode;
 
-    /* the brand spaking new adapter to be used with RecyclerView */
-    CustomRecyclerViewAdapter mRecyclerAdapter;
+    /**
+     * The adapter used with the RecyclerView
+     */
+    CustomAdapter mRecyclerAdapter;
 
     RecyclerView mRecyclerViewList;
 
@@ -109,7 +114,7 @@ public class EditorFragment extends Fragment {
 
         // todo: remove
         mAdapter = new CustomEditorAdapter(getActivity(), R.layout.editor_list_item, textbuffer);
-        mRecyclerAdapter = new CustomRecyclerViewAdapter(getActivity(), textbuffer);
+        mRecyclerAdapter = new CustomAdapter(getActivity(), textbuffer);
 
         if(SavedInstanceState != null) {
             sourceModified = SavedInstanceState.getBoolean("MODIFIED_SOURCE");
@@ -157,7 +162,7 @@ public class EditorFragment extends Fragment {
         mRecyclerViewList = (RecyclerView) view.findViewById(R.id.editor_recycler_view);
         mRecyclerViewList.setLayoutManager(new LinearLayoutManager(mRecyclerViewList.getContext()));
         /* Initialize recyclerview adapter */
-        //mRecyclerAdapter = new CustomRecyclerViewAdapter(getActivity(), textbuffer);
+        //mRecyclerAdapter = new CustomAdapter(getActivity(), textbuffer);
         mRecyclerViewList.setAdapter(mRecyclerAdapter);
 
         mListener.changeActionBarTitle(currentFileName, false);
@@ -279,9 +284,6 @@ public class EditorFragment extends Fragment {
         if(intent != null && resultCode == Const.RESULT_OK){
             switch (requestCode){
                 case Const.NEW_INSTRUCTION:
-                    // todo : remove
-                    //mAdapter.add(intent.getStringExtra(Const.INSTRUCTION));
-
                     mRecyclerAdapter.addItem(intent.getStringExtra(Const.INSTRUCTION));
                     sourceModified = true;
                     break;
@@ -291,7 +293,7 @@ public class EditorFragment extends Fragment {
                     sourceModified = true;
                     break;
                 case Const.SAVE_SOURCE_FILE:
-                    writeTextToDisk(intent.getStringExtra(Const.RETURN_MSG));
+                    writeToDisk(intent.getStringExtra(Const.RETURN_MSG));
                     sourceModified = false;
                     currentFileName = intent.getStringExtra(Const.RETURN_MSG);
                     hasBeenSaved = true;
@@ -305,7 +307,7 @@ public class EditorFragment extends Fragment {
      * @param file
      */
     public void openNewFile(final String file){
-        loadFile(file);
+        loadFromDisk(file);
         currentFileName = file;
         sourceModified = false;
         hasBeenSaved = true;
@@ -313,7 +315,7 @@ public class EditorFragment extends Fragment {
 
     void saveTextFileAction(){
         if(hasBeenSaved) {
-            writeTextToDisk(currentFileName);
+            writeToDisk(currentFileName);
             sourceModified = false;
             mListener.changeActionBarTitle(currentFileName, sourceModified);
         }else{
@@ -325,8 +327,8 @@ public class EditorFragment extends Fragment {
      * Writes the file currently shown on the screen to disk.
      * @param filename  The name of the file to save
      */
-    void writeTextToDisk(final String filename){
-        // Since file I/O is a good candidate for concurrency...threads!
+    void writeToDisk(final String filename){
+        // Disk I/O is a good candidate for concurrency
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -341,30 +343,35 @@ public class EditorFragment extends Fragment {
                 }
             }
         });
-
         thread.start();
         Toast.makeText(getActivity(), "saved " + filename, Toast.LENGTH_SHORT).show();
+
     }
 
     /**
-     * Opens the file specified in {@code filename} and
-     * fills the text file buffer.
+     * Opens the specified file for editing. If the file fails
+     * to open, the contents of the editor remain unchanged.
      * @param filename   The name of the file to open
      */
-    void loadFile(String filename){
-        mAdapter.clear();
+    void loadFromDisk(String filename){
+        List<String> tempBuffer = new ArrayList<>();
         try {
             FileInputStream fis = getActivity().openFileInput(filename);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
             String line;
             while ((line = reader.readLine()) != null){
-                mRecyclerAdapter.addItem(line);
-                //mAdapter.add(line);
+                tempBuffer.add(line);
             }
             reader.close();
             fis.close();
         } catch (IOException e) {
+            // Load failed. Let user know and don't make any changes to editor
             Toast.makeText(getActivity(), "Unable to open file", Toast.LENGTH_SHORT).show();
+        }
+        // Successful load, copy to editor's text buffer
+        mRecyclerAdapter.clear();
+        for(String string : tempBuffer){
+            mRecyclerAdapter.addItem(string);
         }
     }
 
@@ -500,8 +507,8 @@ public class EditorFragment extends Fragment {
     /**
      * The new adapter to be used with the recycler view
      */
-    private class CustomRecyclerViewAdapter extends
-            RecyclerView.Adapter<CustomRecyclerViewAdapter.ViewHolder>{
+    private class CustomAdapter extends
+            RecyclerView.Adapter<CustomAdapter.ViewHolder>{
         /**
          * The textual (source code) data in the text editor
          */
@@ -513,7 +520,7 @@ public class EditorFragment extends Fragment {
         private HashSet<Integer> mSelectedItems = new HashSet<>();
 
 
-        public CustomRecyclerViewAdapter(Context context, List<String> items){
+        public CustomAdapter(Context context, List<String> items){
             mTextData = items;
         }
 
@@ -582,7 +589,7 @@ public class EditorFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, final int position){
-            String [] tempArray = mTextData.get(position).split(";");
+            String[] tempArray = mTextData.get(position).split(";");
             try{
                 holder.mLabel.setText(tempArray[0]);
                 holder.mInstruction.setText(tempArray[1]);
@@ -609,11 +616,18 @@ public class EditorFragment extends Fragment {
             notifyItemRemoved(position);
         }
 
-        public void setItem(String string, int position){
+        public void setItem(String string, int position) {
             mTextData.set(position, string);
             notifyItemChanged(position);
         }
 
+        /**
+         * Clears the textual data buffer and notifies that a full re-binding is needed
+         */
+        public void clear(){
+            mTextData.clear();
+            notifyDataSetChanged();
+        }
         /**
          * Invoked when exiting Action Mode using the back button. Clears
          * all selections and forces a full re-binding.
@@ -631,7 +645,7 @@ public class EditorFragment extends Fragment {
         public boolean hasSelections(){
             return !mSelectedItems.isEmpty();
         }
-    }
+    } // end of CustomAda
 
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
@@ -682,6 +696,31 @@ public class EditorFragment extends Fragment {
                 mRecyclerAdapter.clearSelections();
             }
         }
-    };
+    }; // end of ActionMode.Callback mActionModeCallback
+
+    /**
+     * Used to write the contents of the text buffer to disk during a
+     * "save file" operation
+     */
+    private class WriteFileTask extends AsyncTask<String, Void, Boolean>{
+
+        protected Boolean doInBackground(String... arg){
+            try{
+                FileOutputStream fos = getActivity().openFileOutput(arg[0], Context.MODE_PRIVATE);
+                for(String line : textbuffer){
+                    fos.write( (line + "\n").getBytes() );
+                }
+                fos.close();
+            }catch(IOException e){
+                Toast.makeText(getActivity(), "Unable to save file", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            return true;
+        }
+
+        protected void onPostExecute(Boolean result){
+
+        }
+    }
 
 }
