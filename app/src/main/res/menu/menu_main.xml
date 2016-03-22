@@ -5,8 +5,8 @@
     tools:context=".MainActivity">
 
 
-    <item android:id="@+id/action_assemble_second"
-        android:title="Assemble file"
+    <item android:id="@+id/action_assemble"
+        android:title="@string/action_assemble"
         android:orderInCategory="100"
         app:showAsAction="never" />
 

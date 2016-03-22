@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()){
-            case R.id.action_assemble_second:
+            case R.id.action_assemble:
                 assembleSourceCode();
                 return true;
         }
@@ -291,7 +291,6 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
 
         }
     };
-
 
     /**
      * Used to react to page changes. Many things need to happen when a new page is selected
