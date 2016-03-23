@@ -4,6 +4,10 @@ package com.example.user.testone;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.TypedArray;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
@@ -12,9 +16,11 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -116,7 +122,7 @@ public class EditorFragment extends Fragment {
             currentFileName = SavedInstanceState.getString("FILE_NAME");
             selectionCount = SavedInstanceState.getInt("SELECTION_COUNT");
             multipleSelected = SavedInstanceState.getBoolean("MULTIPLE_SELECTED");
-            mRecyclerAdapter.mSelectedItems = (HashSet<Integer>) SavedInstanceState.getSerializable("HASH_MAP");
+            mRecyclerAdapter.mSelections = (HashSet<Integer>) SavedInstanceState.getSerializable("HASH_MAP");
         }
         // So this fragment can add its own menu entries
         setHasOptionsMenu(true);
@@ -201,7 +207,7 @@ public class EditorFragment extends Fragment {
         outState.putString("FILE_NAME", currentFileName);
         outState.putInt("SELECTION_COUNT", selectionCount);
         outState.putBoolean("MULTIPLE_SELECTED", multipleSelected);
-        outState.putSerializable("HASH_MAP", mRecyclerAdapter.mSelectedItems);
+        outState.putSerializable("HASH_MAP", mRecyclerAdapter.mSelections);
         outState.putBoolean("ACTION_MODE_STATE", (mActionMode != null));
         super.onSaveInstanceState(outState);
     }
@@ -465,10 +471,20 @@ public class EditorFragment extends Fragment {
         /**
          * Keeps track of the selected list view items when in action mode
          */
-        private HashSet<Integer> mSelectedItems = new HashSet<>();
+        private HashSet<Integer> mSelections = new HashSet<>();
 
+        /**
+         * Our background drawables used with our {@link StateListDrawable}
+         */
+        private int mBackground;
+        private int mSelectedBackground= R.color.divider;
 
+        private final TypedValue mTypedValue = new TypedValue();
+
+        // Constructor
         public CustomAdapter(Context context, List<String> items){
+            context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
+            mBackground = mTypedValue.resourceId;
             mTextData = items;
         }
 
@@ -497,7 +513,7 @@ public class EditorFragment extends Fragment {
              */
             @Override
             public void onClick(View view){
-
+                Log.d("EDITOR_TAG", "view clicked: " + getAdapterPosition() );
             }
 
             /**
@@ -507,23 +523,23 @@ public class EditorFragment extends Fragment {
              */
             @Override
             public boolean onLongClick(View view){
+                int pos = getAdapterPosition();
                 if (mActionMode != null) {
-                    // In Action Mode. Two possible scenarios here:
-                    // either another item view in the list has been selected,
-                    // or the same item view has been selected again.
-                    if (!mSelectedItems.add(getAdapterPosition())) {
-                        mSelectedItems.remove(getAdapterPosition());
+                    // In Action Mode. Either another item view in the list has
+                    // been selected, or the same item view has been selected again.
+                    if (!mSelections.add(pos)) {
+                        mSelections.remove(pos);
                     }
-                    view.setSelected(mSelectedItems.contains(getAdapterPosition()));
                     mActionMode.invalidate();
-                    if (mSelectedItems.isEmpty()){
+                    if (mSelections.isEmpty()){
                         mActionMode.finish();
                     }
                 } else {
                     // Not in Action Mode. Enter Action Mode and add selection
                     mActionMode = getActivity().startActionMode(mActionModeCallback);
-                    view.setSelected(mSelectedItems.add(getAdapterPosition()));
+                    mSelections.add(pos);
                 }
+                view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
                 return true;
             }
         } // end of ViewHolder class
@@ -545,7 +561,8 @@ public class EditorFragment extends Fragment {
             }catch (ArrayIndexOutOfBoundsException e){
                 Log.d("EDITOR_FRAGMENT", "array problem");
             }
-            holder.mRootView.setSelected(mSelectedItems.contains(position));
+            holder.mRootView.setBackgroundResource(mSelections.contains(position)?
+                    mSelectedBackground : mBackground);
         }
 
         @Override
@@ -581,19 +598,20 @@ public class EditorFragment extends Fragment {
          * all selections and forces a full re-binding.
          */
         public void clearSelections(){
-            mSelectedItems.clear();
+            mSelections.clear();
             // Full re-binding. Not most the efficient.
             notifyDataSetChanged();
         }
 
         public boolean multipleItemsSelected(){
-            return (mSelectedItems.size() > 1);
+            return (mSelections.size() > 1);
         }
 
         public boolean hasSelections(){
-            return !mSelectedItems.isEmpty();
+            return !mSelections.isEmpty();
         }
-    } // end of CustomAda
+
+    } // end of CustomAdapter
 
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
