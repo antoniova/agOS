@@ -149,8 +149,6 @@ public class EditorFragment extends Fragment {
         /* get a handle on the recycler view list and set it up */
         mRecyclerViewList = (RecyclerView) view.findViewById(R.id.editor_recycler_view);
         mRecyclerViewList.setLayoutManager(new LinearLayoutManager(mRecyclerViewList.getContext()));
-        /* Initialize recyclerview adapter */
-        //mRecyclerAdapter = new CustomAdapter(getActivity(), textbuffer);
         mRecyclerViewList.setAdapter(mRecyclerAdapter);
 
         mListener.changeActionBarTitle(currentFileName, false);
@@ -491,8 +489,6 @@ public class EditorFragment extends Fragment {
                     }
                     view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
                 } else {
-                    // launch GridACtivity to edit instruction
-                    //Snackbar.make(getView(), "GridActivity" , Snackbar.LENGTH_SHORT).show();
                     positionToEdit = pos;
                     launchGridActivity(Const.EDIT_INSTRUCTION);
                 }

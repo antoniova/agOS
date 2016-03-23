@@ -75,6 +75,7 @@ public class GridActivity extends AppCompatActivity {
         setContentView(R.layout.grid_activity);
 
         mGridView = (RecyclerView) findViewById(R.id.grid_recycler_view);
+        mGridView.setHasFixedSize(true);
         mGridView.setLayoutManager(new GridLayoutManager(this, columnCount));
         mGridView.setAdapter(new GridAdapter(this));
     }
@@ -97,7 +98,6 @@ public class GridActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent){
         if(intent != null){
             if(requestCode == Const.GET_ARGUMENTS && resultCode == Const.RESULT_OK){
-                //if(intent.hasExtra(Const.INSTRUCTION))
                 finishWithResult(intent.getStringExtra(Const.RETURN_MSG));
             }
         }
