@@ -131,8 +131,6 @@ public class EditorFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstance){
-        // todo: change to alternative layout
-        //return inflater.inflate(R.layout.editor_layout, container, false);
          return inflater.inflate(R.layout.editor_layout_alt, container, false);
     }
 

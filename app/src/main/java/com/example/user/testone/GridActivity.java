@@ -1,20 +1,23 @@
 package com.example.user.testone;
 
-
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-
+import android.widget.TextView;
 
 /**
  * Created by AG on 11/11/14.
@@ -24,8 +27,7 @@ import android.widget.GridView;
  */
 public class GridActivity extends AppCompatActivity {
 
-    private static final String DEBUG_TAG = "Gestures";
-
+    private static final String DEBUG_TAG = "GridActivity_Tag";
 
     private static final int COMMENT= 0;
     private static final int LOAD 	= 1;
@@ -63,23 +65,74 @@ public class GridActivity extends AppCompatActivity {
     private static final int HALT	= 33;
     private static final int NOOP	= 34;
 
+    private static final int columnCount = 3;
+
+   private RecyclerView mGridView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_grid);
+        setContentView(R.layout.grid_activity);
 
-        GridView gridview = (GridView) findViewById(R.id.gridview);
-        if(gridview == null){
-            Log.d(DEBUG_TAG, "error getting gridview");
-            finish();
+        mGridView = (RecyclerView) findViewById(R.id.grid_recycler_view);
+        mGridView.setLayoutManager(new GridLayoutManager(this, columnCount));
+        mGridView.setAdapter(new GridAdapter(this));
+    }
+
+    public void finishWithResult(String instr){
+        Intent result = new Intent();
+        result.putExtra(Const.INSTRUCTION, instr);
+        setResult(Const.RESULT_OK, result);
+        finish();
+    }
+
+    public void launchArgumentActivity(String opcode, int dialog_type){
+        Intent intent = new Intent(getApplicationContext(), ArgumentActivity.class);
+        intent.putExtra(Const.OPCODE, opcode);
+        intent.putExtra(Const.DIALOG_TYPE, dialog_type);
+        startActivityForResult(intent, Const.GET_ARGUMENTS);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent){
+        if(intent != null){
+            if(requestCode == Const.GET_ARGUMENTS && resultCode == Const.RESULT_OK){
+                //if(intent.hasExtra(Const.INSTRUCTION))
+                finishWithResult(intent.getStringExtra(Const.RETURN_MSG));
+            }
         }
-        gridview.setAdapter(new ImageAdapter(this));
+    }
 
-        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+    /**
+     * Adapter used with the RecyclerView
+     */
+    private class GridAdapter extends RecyclerView.Adapter<GridAdapter.ViewHolder>{
 
-                switch(position){
+        private String[] mItems = {"CMMNT", "LOAD", "LOADI",
+                "STORE", "ADD", "ADDI", "ADDC", "ADDCI", "SUB",
+                "SUBI", "SUBC", "SUBCI", "AND", "ANDI", "XOR",
+                "XORI", "COMPL", "SHL", "SHLA", "SHR", "SHRA",
+                "COMPR", "COMPRI", "GETSTA", "PUTSTA", "JUMP",
+                "JUMPL", "JUMPE", "JUMPG", "CALL", "RETURN",
+                "READ", "WRITE", "HALT", "NOOP" };
+
+        // constructor
+        public GridAdapter(Context context){
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+
+            private final TextView mTextView;
+
+            public ViewHolder(View view){
+                super(view);
+                mTextView = (TextView) view;
+                mTextView.setOnClickListener(this);
+            }
+
+            @Override
+            public void onClick(View view){
+                switch(getAdapterPosition()){
                     case COMMENT:
                         launchArgumentActivity(" ", Const.COMMENT_DIALOG);
                         break;
@@ -187,56 +240,24 @@ public class GridActivity extends AppCompatActivity {
                         break;
                 }
             }
-        });
+        } // end of ViewHolder class
 
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        // This is an empty menu. There's no need for a menu when this fragment
-        // is shown.
-        getMenuInflater().inflate(R.menu.empty_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-
-        // No menu. Nothing to handle
-        return super.onOptionsItemSelected(item);
-    }
-
-    public void finishWithResult(String instr){
-        Intent result = new Intent();
-        result.putExtra(Const.INSTRUCTION, instr);
-        setResult(Const.RESULT_OK, result);
-        finish();
-    }
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent){
-        if(intent != null){
-            if(requestCode == Const.GET_ARGUMENTS && resultCode == Const.RESULT_OK){
-                //if(intent.hasExtra(Const.INSTRUCTION))
-                finishWithResult(intent.getStringExtra(Const.RETURN_MSG));
-            }
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
+            return new ViewHolder( LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.grid_view_item, parent, false) );
         }
-    }
 
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position){
+            holder.mTextView.setText(mItems[position]);
+        }
 
-    public void launchArgumentActivity(String opcode, int dialog_type){
-        Intent intent = new Intent(getApplicationContext(), ArgumentActivity.class);
-        intent.putExtra(Const.OPCODE, opcode);
-        intent.putExtra(Const.DIALOG_TYPE, dialog_type);
-        startActivityForResult(intent, Const.GET_ARGUMENTS);
-    }
-
+        @Override
+        public int getItemCount(){
+            return mItems.length;
+        }
+    } // end of GridAdapter class
 }
 
 
