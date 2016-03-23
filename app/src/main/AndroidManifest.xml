@@ -23,15 +23,18 @@
             android:theme="@style/Theme.AppCompat.Translucent" >
         </activity>
 
-
         <activity
             android:name=".ArgumentActivity"
             android:label="@string/title_activity_argument"
             android:theme="@android:style/Theme.Holo.Light.Dialog"
-             >
+            >
         </activity>
 
     </application>
 
 </manifest>
+
+<!--
+
+-->
 

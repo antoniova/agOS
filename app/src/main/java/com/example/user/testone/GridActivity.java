@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,7 +22,7 @@ import android.widget.GridView;
  * LABEL:; OPCODE ; #COMMENT
  * The semi-colon is used as a delimiter when parsing an instruction.
  */
-public class GridActivity extends ActionBarActivity {
+public class GridActivity extends AppCompatActivity {
 
     private static final String DEBUG_TAG = "Gestures";
 

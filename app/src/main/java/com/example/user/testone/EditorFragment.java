@@ -57,6 +57,7 @@ public class EditorFragment extends Fragment {
     public static final String ARG_SECTION_NUMBER = "section_0";
     public static final String FRAGMENT_BAR_TITLE = "Text editor";
     public static final String STATE_ADAPTER =  "adapter_array";
+    public static final String FRAGMENT_TAG = "editor_fragment_tag";
 
     PageFragmentListener mListener;
     private ArrayList<String> textbuffer;
@@ -199,6 +200,11 @@ public class EditorFragment extends Fragment {
         return true;
     }
 
+    /**
+     * Saves the state of the editor fragment. Invoked automatically as part of the
+     * fragment's lifecycle.
+     * @param outState
+     */
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putStringArrayList(STATE_ADAPTER, textbuffer);
@@ -211,7 +217,6 @@ public class EditorFragment extends Fragment {
         outState.putBoolean("ACTION_MODE_STATE", (mActionMode != null));
         super.onSaveInstanceState(outState);
     }
-
 
     /**
      * Launches the GridActivity. Any results sent back from
@@ -384,22 +389,6 @@ public class EditorFragment extends Fragment {
     /*
     AbsListView.MultiChoiceModeListener mModeListener = new AbsListView.MultiChoiceModeListener() {
 
-
-
-        @Override
-        public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
-            // Here you can do something when items are selected/de-selected,
-            // such as update the title in the CAB
-            if(checked) {
-                mAdapter.setNewSelection(position, true);
-                selectionCount++;
-            }else{
-                mAdapter.removeSelection(position);
-                selectionCount--;
-            }
-            mode.invalidate();
-        }
-
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             // Respond to clicks on the actions in the CAB
@@ -423,14 +412,6 @@ public class EditorFragment extends Fragment {
         }
 
         @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            // Inflate the menu for the CAB
-            MenuInflater inflater = mode.getMenuInflater();
-            inflater.inflate(R.menu.context_one_selection, menu);
-            return true;
-        }
-
-        @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             // This might not be the most efficient way to update the CAB
             // but is fast enough
@@ -442,19 +423,7 @@ public class EditorFragment extends Fragment {
 
             return true;
         }
-
-        /**
-         * Here you can make any necessary updates to the activity when
-         * the CAB is removed. By default, selected items are deselected/unchecked.
-         * @param mode
-
-        @Override
-        public void onDestroyActionMode(ActionMode mode) {
-            mAdapter.clearSelection();
-            selectionCount = 0;
-        }
-    };
-    */
+    };*/
 
     /**
      * The new adapter to be used with the recycler view
@@ -608,6 +577,7 @@ public class EditorFragment extends Fragment {
             mTextData.clear();
             notifyDataSetChanged();
         }
+
         /**
          * Invoked when exiting Action Mode using the back button. Clears
          * all selections and forces a full re-binding.
@@ -625,9 +595,11 @@ public class EditorFragment extends Fragment {
         public boolean hasSelections(){
             return !mSelections.isEmpty();
         }
-
     } // end of CustomAdapter
 
+    /**
+     *
+     */
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
 
         // Called when the action mode is created; startActionMode() was called
@@ -658,7 +630,7 @@ public class EditorFragment extends Fragment {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             /*
             switch (item.getItemId()) {
-                case R.id.de:
+                case R.id.action_delete_file:
                     shareCurrentItem();
                     mode.finish(); // Action picked, so close the CAB
                     return true;
@@ -676,6 +648,7 @@ public class EditorFragment extends Fragment {
             if (mRecyclerAdapter.hasSelections()){
                 mRecyclerAdapter.clearSelections();
             }
+            Log.d(FRAGMENT_TAG, "editor ActionMode finished");
         }
     }; // end of ActionMode.Callback mActionModeCallback
 

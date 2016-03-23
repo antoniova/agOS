@@ -234,6 +234,7 @@ public class FileBrowserFragment extends ListFragment {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mAdapter.clearSelection();
+            Log.d(FRAGMENT_TAG, "filebrowser ActionMode finished");
         }
     };
 
