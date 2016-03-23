@@ -68,19 +68,20 @@ public class EditorFragment extends Fragment {
      */
     CustomAdapter mRecyclerAdapter;
 
+    /**
+     * Recycler View
+     */
     RecyclerView mRecyclerViewList;
-
-    private int positionToEdit = 0;
 
     /**
      * The following fields need to be saved during configuration changes
      * (i.e., screen rotations)
      */
     boolean sourceModified = false;
-    boolean hasBeenSaved = false;
-    String currentFileName = "untitled";
-    int selectionCount = 0;
-    boolean multipleSelected = false;
+    private boolean hasBeenSaved = false;
+    private String currentFileName = "untitled";
+    private int selectionCount = 0;
+    private int positionToEdit = 0;
 
 
     /**
@@ -97,10 +98,9 @@ public class EditorFragment extends Fragment {
     }
 
     /**
-     * Empty constructor
+     * constructor
      */
-    public EditorFragment(){
-    }
+    public EditorFragment(){}
 
 
     @Override
@@ -121,7 +121,7 @@ public class EditorFragment extends Fragment {
             hasBeenSaved = SavedInstanceState.getBoolean("FILE_HAS_BEEN_SAVED");
             currentFileName = SavedInstanceState.getString("FILE_NAME");
             selectionCount = SavedInstanceState.getInt("SELECTION_COUNT");
-            multipleSelected = SavedInstanceState.getBoolean("MULTIPLE_SELECTED");
+            positionToEdit = SavedInstanceState.getInt("EDIT_POSITION");
             mRecyclerAdapter.mSelections = (HashSet<Integer>) SavedInstanceState.getSerializable("HASH_MAP");
         }
         // So this fragment can add its own menu entries
@@ -202,11 +202,11 @@ public class EditorFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putStringArrayList(STATE_ADAPTER, textbuffer);
-        outState.putBoolean("MODIFIED_SOURCE",sourceModified);
+        outState.putBoolean("MODIFIED_SOURCE", sourceModified);
         outState.putBoolean("FILE_HAS_BEEN_SAVED", hasBeenSaved);
         outState.putString("FILE_NAME", currentFileName);
         outState.putInt("SELECTION_COUNT", selectionCount);
-        outState.putBoolean("MULTIPLE_SELECTED", multipleSelected);
+        outState.putInt("EDIT_POSITION", positionToEdit);
         outState.putSerializable("HASH_MAP", mRecyclerAdapter.mSelections);
         outState.putBoolean("ACTION_MODE_STATE", (mActionMode != null));
         super.onSaveInstanceState(outState);
@@ -247,9 +247,7 @@ public class EditorFragment extends Fragment {
                     mRecyclerAdapter.addItem(intent.getStringExtra(Const.INSTRUCTION));
                     break;
                 case Const.EDIT_INSTRUCTION:
-                    // todo: update with new adapter
-                    textbuffer.set(positionToEdit, intent.getStringExtra(Const.INSTRUCTION));
-                    mAdapter.notifyDataSetChanged();
+                    mRecyclerAdapter.setItem(positionToEdit, intent.getStringExtra(Const.INSTRUCTION) );
                     break;
                 case Const.SAVE_SOURCE_FILE:
                     writeToDisk(intent.getStringExtra(Const.RETURN_MSG));
@@ -512,8 +510,25 @@ public class EditorFragment extends Fragment {
              * @param view the view that was clicked
              */
             @Override
-            public void onClick(View view){
-                Log.d("EDITOR_TAG", "view clicked: " + getAdapterPosition() );
+            public void onClick(View view) {
+                int pos = getAdapterPosition();
+                if (mActionMode != null) {
+                    // In Action Mode. Either another item view in the list has
+                    // been selected, or the same item view has been selected again.
+                    if (!mSelections.add(pos)) {
+                        mSelections.remove(pos);
+                    }
+                    mActionMode.invalidate();
+                    if (mSelections.isEmpty()) {
+                        mActionMode.finish();
+                    }
+                    view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
+                } else {
+                    // launch GridACtivity to edit instruction
+                    //Snackbar.make(getView(), "GridActivity" , Snackbar.LENGTH_SHORT).show();
+                    positionToEdit = pos;
+                    launchGridActivity(Const.EDIT_INSTRUCTION);
+                }
             }
 
             /**
@@ -581,9 +596,9 @@ public class EditorFragment extends Fragment {
             notifyItemRemoved(position);
         }
 
-        public void setItem(String string, int position) {
+        public void setItem(int position, String string) {
             mTextData.set(position, string);
-            notifyItemChanged(position);
+            notifyDataSetChanged();
         }
 
         /**
@@ -643,7 +658,7 @@ public class EditorFragment extends Fragment {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             /*
             switch (item.getItemId()) {
-                case R.id.menu_share:
+                case R.id.de:
                     shareCurrentItem();
                     mode.finish(); // Action picked, so close the CAB
                     return true;
