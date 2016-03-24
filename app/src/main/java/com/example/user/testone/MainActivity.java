@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
     static final int RESULTS_FRAGMENT = 2;
 
     private Toolbar toolbar;
-    Handler mHandler;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -80,8 +79,6 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.setOnPageChangeListener(pageChangeListener);         // Add a page change listener
-
-        mHandler = new ExtendedHandler(this);
     }
 
     @Override
@@ -129,8 +126,7 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
-            return 3;
+            return 3;  // There are three panels
         }
 
         /* Not sure this does anything
@@ -319,35 +315,10 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
                 Snackbar.make(getCurrentFocus(), "There's nothing to compile.", Snackbar.LENGTH_SHORT)
                         .show();
             } else {
-                Assembler mAssembler = new Assembler(this, editorHandle.getTextBuffer(),
-                        editorHandle.getCurrentFileName(), mHandler);
-
-                NewAssembler newAssembler;
-                try{
-                    Thread thread = new Thread(mAssembler, "Assembler_Thread");
-                    thread.start();
-                }catch(NullPointerException e){
-                    e.printStackTrace();
-                }
+                new Assembler(this, editorHandle.getTextBuffer(), editorHandle.getCurrentFileName())
+                        .execute();
             }
         }
-    }
-
-    private static class ExtendedHandler extends Handler{
-
-        private final WeakReference<MainActivity> mTarget;
-
-        ExtendedHandler(MainActivity activity){
-            mTarget = new WeakReference<MainActivity>(activity);
-        }
-
-        @Override
-        public void handleMessage(Message msg){
-            MainActivity t = mTarget.get();
-            String message = (String) msg.obj;
-            Toast.makeText(t.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-        }
-
     }
 
 }

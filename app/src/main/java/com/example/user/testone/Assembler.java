@@ -2,6 +2,7 @@ package com.example.user.testone;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -25,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class Assembler implements Runnable {
+public class Assembler extends AsyncTask<Void, Void, Void> {
 
     interface Instruction{
         void exec();
@@ -66,7 +67,7 @@ public class Assembler implements Runnable {
     private static final int WRITE_OP	= 23;
     private static final int HALT_OP	= 24;
     private static final int NOOP_OP	= 25;
-    private static final String SUCCESS = "Compilation finished successfully";
+
     // collections
     Map<String, Instruction> instructionSet;
     List<String> origSourceCode;
@@ -81,27 +82,22 @@ public class Assembler implements Runnable {
     private Tokenizer tokenizer;
     private Integer lineNumber = 0;
     private String fileName;
-    private String objectFileName;
     private String mErrorMessage;
-    boolean inSecondPass;
+    private boolean inSecondPass;
     Context mContext;
     private Activity mHost;
-    Handler mHandler;
-    Handler.Callback mEvent;
 
     // Constructor
-    Assembler(Context context, List<String> code, String name, Handler handler){
+    Assembler(Context context, List<String> code, String name){
         mContext = context;
         mHost = (Activity) context;
         fileName = name;
-        inSecondPass = false;
-        mHandler = handler;
-        origSourceCode =  code;
-        objectCode  = new ArrayList<Short>();
+        origSourceCode = code;
+        objectCode  = new ArrayList<>();
         strippedCode = new ArrayList<>();
         sourceCode = new ArrayList<>();
-        symbolTable = new HashMap<String, Integer>();
-        instructionSet = new HashMap<String,Instruction>();
+        symbolTable = new HashMap<>();
+        instructionSet = new HashMap<>();
         instructionSet.put("load", load);
         instructionSet.put("loadi", loadi);
         instructionSet.put("store", store);
@@ -138,33 +134,28 @@ public class Assembler implements Runnable {
         instructionSet.put("noop", noop);
     }
 
-    /**
-     * Runnable interface method
-     */
-    public void run(){
+
+    protected Void doInBackground(Void... args){
         assemble();
-
-        Message msg = Message.obtain();
-        //msg.obj = new String("all done");
-        msg.obj = "Compilation finished successfully";
-        mHandler.sendMessage(msg);
-        //printObjectCode();
-
+        return null;
     }
 
-    protected void doInBackground(){
-        assemble();
-    }
-
-    protected void onPostExecture(Void v){
+    protected void onPostExecute(Void arg){
         if(error){
             // display error message. Runs in main thread. Do nothing else
             if(mHost.getCurrentFocus() != null){
                 Snackbar.make(mHost.getCurrentFocus(), mErrorMessage, Snackbar.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(mContext, mErrorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext.getApplicationContext(), mErrorMessage, Toast.LENGTH_SHORT).show();
             }
-
+        } else {
+            if(mHost.getCurrentFocus() != null){
+                Snackbar.make(mHost.getCurrentFocus(), "Compilation finished successfully",
+                        Snackbar.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(mContext.getApplicationContext(), "Compilation finished successfully",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -307,10 +298,10 @@ public class Assembler implements Runnable {
 
     void saveObjectCode() {
         String [] tempArray = fileName.split("\\.");
-        objectFileName = tempArray[0] + ".o";
+        String file = tempArray[0] + ".o";
         byte[] buf = new byte[2];
         try{
-            FileOutputStream fos = mContext.openFileOutput(objectFileName, Context.MODE_PRIVATE);
+            FileOutputStream fos = mContext.openFileOutput(file, Context.MODE_PRIVATE);
             BufferedOutputStream outputStream = new BufferedOutputStream(fos);
             for(short t : objectCode){
                 buf[0] = (byte) (t >> 8);
@@ -694,7 +685,6 @@ public class Assembler implements Runnable {
      **********************************************************/
 
 
-
     boolean validAddress(){
         return (address >= 0) && (address <= 255);
     }
@@ -705,18 +695,13 @@ public class Assembler implements Runnable {
 
     void invalidAddressError(){
         error = true;
-        Message msg = Message.obtain();
-        msg.obj = new String("Error in line " + lineNumber + " : Invalid address value.") ;
-        //mEvent.handleMessage(msg);
-        mHandler.sendMessage(msg);
+        mErrorMessage = "Error in line " + lineNumber + " : Invalid address value.";
     }
 
     void invalidConstantError(){
         error = true;
-        Message msg = Message.obtain();
-        msg.obj = new String("Error in line " + lineNumber + " : Invalid constant value.") ;
-        //mEvent.handleMessage(msg);
-        mHandler.sendMessage(msg);
+        mErrorMessage = "Error in line " + lineNumber + " : Invalid constant value.";
     }
 
 }
+

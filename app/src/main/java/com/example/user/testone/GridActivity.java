@@ -67,7 +67,7 @@ public class GridActivity extends AppCompatActivity {
 
     private static final int columnCount = 3;
 
-   private RecyclerView mGridView;
+    private RecyclerView mGridView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
