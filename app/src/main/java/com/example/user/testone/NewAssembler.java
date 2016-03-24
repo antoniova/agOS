@@ -2,6 +2,7 @@ package com.example.user.testone;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -25,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class Assembler implements Runnable {
+public class NewAssembler extends AsyncTask<Void, Void, Void> {
 
     interface Instruction{
         void exec();
@@ -83,6 +84,7 @@ public class Assembler implements Runnable {
     private String fileName;
     private String objectFileName;
     private String mErrorMessage;
+    private String mSuccessMessage = "Compilation finished successfully";
     boolean inSecondPass;
     Context mContext;
     private Activity mHost;
@@ -90,7 +92,7 @@ public class Assembler implements Runnable {
     Handler.Callback mEvent;
 
     // Constructor
-    Assembler(Context context, List<String> code, String name, Handler handler){
+    NewAssembler(Context context, List<String> code, String name, Handler handler){
         mContext = context;
         mHost = (Activity) context;
         fileName = name;
@@ -152,19 +154,25 @@ public class Assembler implements Runnable {
 
     }
 
-    protected void doInBackground(){
+    protected Void doInBackground(Void... args){
         assemble();
+        return null;
     }
 
-    protected void onPostExecture(Void v){
+    protected void onPostExecute(Void arg){
         if(error){
             // display error message. Runs in main thread. Do nothing else
             if(mHost.getCurrentFocus() != null){
                 Snackbar.make(mHost.getCurrentFocus(), mErrorMessage, Snackbar.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(mContext, mErrorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext.getApplicationContext(), mErrorMessage, Toast.LENGTH_SHORT).show();
             }
-
+        } else {
+            if(mHost.getCurrentFocus() != null){
+                Snackbar.make(mHost.getCurrentFocus(), mSuccessMessage, Snackbar.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(mContext.getApplicationContext(), mSuccessMessage, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -720,3 +728,4 @@ public class Assembler implements Runnable {
     }
 
 }
+

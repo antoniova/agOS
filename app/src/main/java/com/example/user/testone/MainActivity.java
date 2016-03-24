@@ -76,14 +76,10 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
 
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
+        // Init ViewPagerAdapter
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        // Add a page change listener
-        mViewPager.setOnPageChangeListener(pageChangeListener);
+        mViewPager.setOnPageChangeListener(pageChangeListener);         // Add a page change listener
 
         mHandler = new ExtendedHandler(this);
     }
@@ -313,15 +309,20 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
         }
     };
 
-
+    /**
+     *
+     */
     public void assembleSourceCode(){
         editorHandle = (EditorFragment) getFragmentFromPager(EDITOR_FRAGMENT);
         if (editorHandle != null){
             if (editorHandle.getTextBuffer().isEmpty()){
-                Toast.makeText(getApplicationContext(), "There's nothing to compile", Toast.LENGTH_SHORT).show();
+                Snackbar.make(getCurrentFocus(), "There's nothing to compile.", Snackbar.LENGTH_SHORT)
+                        .show();
             } else {
                 Assembler mAssembler = new Assembler(this, editorHandle.getTextBuffer(),
                         editorHandle.getCurrentFileName(), mHandler);
+
+                NewAssembler newAssembler;
                 try{
                     Thread thread = new Thread(mAssembler, "Assembler_Thread");
                     thread.start();
