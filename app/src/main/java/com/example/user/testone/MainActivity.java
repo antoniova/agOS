@@ -111,15 +111,16 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
             super(fm);
         }
 
+        /**
+         * Instantiates the appropriate fragment based on position.
+         * @param position
+         * @return
+         */
         @Override
         public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
             switch (position){
                 case 0: return EditorFragment.newInstance(position);
-
                 case 1: return FileBrowserFragment.newInstance(position);
-
-                //default: return ThirdFragment.newInstance(position);
                 default: return ResultFragment.newInstance(position);
             }
         }
@@ -128,23 +129,6 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
         public int getCount() {
             return 3;  // There are three panels
         }
-
-        /* Not sure this does anything
-        @Override
-        public CharSequence getPageTitle(int position) {
-            Locale l = Locale.getDefault();
-
-            switch (position) {
-                case 0:
-                    return getString(R.string.title_section1).toUpperCase(l);
-                case 1:
-                    return getString(R.string.title_section2).toUpperCase(l);
-                case 2:
-                    return getString(R.string.title_section3).toUpperCase(l);
-            }
-            return null;
-        }
-        */
     }
 
     /**
@@ -249,42 +233,6 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
     }
 
     /**
-     * OnPageChangeListener. Called every time there's a page change event.
-     * Might come in handy in the future.
-     */
-    ViewPager.OnPageChangeListener mPageListener = new ViewPager.OnPageChangeListener(){
-
-        @Override
-        public void onPageScrolled(int i, float v, int i2) {
-
-        }
-
-        /**
-         * This method will have many functions
-         * @param i
-         */
-        @Override
-        public void onPageSelected(int i) {
-            switch (i){
-                case EDITOR_FRAGMENT:
-                    ((EditorFragment)getFragmentFromPager(i)).getCorrectTitle() ;
-                    break;
-                case BROWSER_FRAGMENT:
-                    ((FileBrowserFragment)getFragmentFromPager(i)).reloadFileList();
-                    changeActionBarTitle("File Browser", false);
-                    break;
-                case RESULTS_FRAGMENT:
-                    changeActionBarTitle("Program Statistics", false);
-            }
-        }
-
-        @Override
-        public void onPageScrollStateChanged(int i) {
-
-        }
-    };
-
-    /**
      * Used to react to page changes. Many things need to happen when a new page is selected
      */
     ViewPager.SimpleOnPageChangeListener pageChangeListener = new ViewPager.SimpleOnPageChangeListener(){
@@ -306,7 +254,8 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
     };
 
     /**
-     *
+     * Assembles the source code currently in the editor. If successful, the {@link Assembler}
+     * will save the compiled file in the internal storage.
      */
     public void assembleSourceCode(){
         editorHandle = (EditorFragment) getFragmentFromPager(EDITOR_FRAGMENT);

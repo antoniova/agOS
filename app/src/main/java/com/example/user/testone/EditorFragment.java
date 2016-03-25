@@ -359,8 +359,7 @@ public class EditorFragment extends Fragment {
             textbuffer.remove(i);
         }
         mAdapter.notifyDataSetChanged();
-        sourceModified = true;
-        mListener.changeActionBarTitle(currentFileName, sourceModified);
+        mListener.changeActionBarTitle(currentFileName, sourceModified = true);
     }
 
     /**

@@ -10,9 +10,9 @@
 
     <!-- Base application theme -->
     <style name="Base.Theme.AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">#673AB7</item>
-        <item name="colorPrimaryDark">#512DA8</item>
-        <item name="colorAccent">#FF4081</item>
+        <item name="colorPrimary">#0091e9</item>
+        <item name="colorPrimaryDark">#1976d2</item>
+        <item name="colorAccent">#03a9f4</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="android:actionModeBackground">@color/action_mode_color</item>
     </style>
