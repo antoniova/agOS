@@ -17,6 +17,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -438,8 +439,8 @@ public class EditorFragment extends Fragment {
         /**
          * Our background drawables used with our {@link StateListDrawable}
          */
-        private int mBackground;
-        private int mSelectedBackground= R.color.divider;
+        private int mBackground = R.color.white;
+        private int mSelectedBackground= R.color.selection;
 
         private final TypedValue mTypedValue = new TypedValue();
 
@@ -454,16 +455,20 @@ public class EditorFragment extends Fragment {
         class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
         View.OnLongClickListener{
 
-            private final View mRootView;
+            //private final View mRootView;
+            private final CardView mCard;
             private final TextView mLabel;
             private final TextView mInstruction;
             private final TextView mComment;
 
             public ViewHolder(View view){
                 super(view);
-                mRootView = view;
-                mRootView.setOnClickListener(this);
-                mRootView.setOnLongClickListener(this);
+                //mRootView = view;
+                //mRootView.setOnClickListener(this);
+                //mRootView.setOnLongClickListener(this);
+                mCard = (CardView)view.findViewById(R.id.editor_item_cardview);
+                mCard.setOnLongClickListener(this);
+                mCard.setOnClickListener(this);
                 mLabel = (TextView) view.findViewById(R.id.label_text);
                 mInstruction = (TextView) view.findViewById(R.id.instruction_text);
                 mComment = (TextView) view.findViewById(R.id.comment_text);
@@ -486,7 +491,8 @@ public class EditorFragment extends Fragment {
                     if (mSelections.isEmpty()) {
                         mActionMode.finish();
                     }
-                    view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
+                    mCard.setCardBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
+                    //view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
                 } else {
                     positionToEdit = pos;
                     launchGridActivity(Const.EDIT_INSTRUCTION);
@@ -516,7 +522,8 @@ public class EditorFragment extends Fragment {
                     mActionMode = getActivity().startActionMode(mActionModeCallback);
                     mSelections.add(pos);
                 }
-                view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
+                //view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
+                mCard.setCardBackgroundColor(mSelections.contains(pos) ? mSelectedBackground : mBackground);
                 return true;
             }
         } // end of ViewHolder class
@@ -524,7 +531,7 @@ public class EditorFragment extends Fragment {
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.editor_list_item, parent, false);
+                    .inflate(R.layout.editor_item, parent, false); //editor_list_item
             return new ViewHolder(view);
         }
 
@@ -538,8 +545,11 @@ public class EditorFragment extends Fragment {
             }catch (ArrayIndexOutOfBoundsException e){
                 Log.d("EDITOR_FRAGMENT", "array problem");
             }
-            holder.mRootView.setBackgroundResource(mSelections.contains(position)?
+            //holder.mRootView.setBackgroundResource(mSelections.contains(position)?
+            //        mSelectedBackground : mBackground);
+            holder.mCard.setCardBackgroundColor(mSelections.contains(position)?
                     mSelectedBackground : mBackground);
+
         }
 
         @Override

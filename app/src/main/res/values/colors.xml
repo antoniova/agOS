@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="white">#ffffff</color>
+    <color name="white">#ffffffff</color>
     <color name="blue">#33b5e5</color>
     <color name="purple">#aa66cc</color>
     <color name="green">#99cc00</color>
@@ -26,6 +26,7 @@
     <color name="secondary_text">#727272</color>
     <color name="icons">#FFFFFF</color>
     <color name="divider">#B6B6B6</color>
+    <color name="selection">#cfd8dc</color>
 
     <color name="action_mode_color">#727272</color>
 
