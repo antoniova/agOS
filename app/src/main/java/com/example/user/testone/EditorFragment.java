@@ -62,7 +62,6 @@ public class EditorFragment extends Fragment {
 
     PageFragmentListener mListener;
     private ArrayList<String> textbuffer;
-    CustomEditorAdapter mAdapter;
     ActionMode mActionMode;
 
     /**
@@ -109,13 +108,15 @@ public class EditorFragment extends Fragment {
     public void onCreate(Bundle SavedInstanceState){
         super.onCreate(SavedInstanceState);
 
-        textbuffer = new ArrayList<>();
         if(SavedInstanceState != null) {
             textbuffer = SavedInstanceState.getStringArrayList(STATE_ADAPTER);
+        } else {
+            textbuffer = new ArrayList<>();
+            //for(int i = 0; i < 20; i++){
+              //  textbuffer.add(null);
+            //}
         }
 
-        // todo: remove
-        mAdapter = new CustomEditorAdapter(getActivity(), R.layout.editor_list_item, textbuffer);
         mRecyclerAdapter = new CustomAdapter(getActivity(), textbuffer);
 
         if(SavedInstanceState != null) {
@@ -243,7 +244,7 @@ public class EditorFragment extends Fragment {
      */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent){
-        if(intent != null && resultCode == Const.RESULT_OK){
+        if(intent != null && resultCode == Activity.RESULT_OK){
             switch (requestCode){
                 case Const.NEW_INSTRUCTION:
                     mRecyclerAdapter.addItem(intent.getStringExtra(Const.INSTRUCTION));
@@ -353,6 +354,7 @@ public class EditorFragment extends Fragment {
      * @param set
      */
     void deleteSelectedItems(Set<Integer> set){
+        /*
         Integer [] t = new Integer[set.size()];
         set.toArray(t);
         Arrays.sort(t, Collections.reverseOrder());
@@ -361,6 +363,7 @@ public class EditorFragment extends Fragment {
         }
         mAdapter.notifyDataSetChanged();
         mListener.changeActionBarTitle(currentFileName, sourceModified = true);
+        */
     }
 
     /**
@@ -439,15 +442,13 @@ public class EditorFragment extends Fragment {
         /**
          * Our background drawables used with our {@link StateListDrawable}
          */
-        private int mBackground = R.color.white;
-        private int mSelectedBackground= R.color.selection;
-
-        private final TypedValue mTypedValue = new TypedValue();
+        private int mBackground;
+        private int mSelectedBackground;
 
         // Constructor
         public CustomAdapter(Context context, List<String> items){
-            context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
-            mBackground = mTypedValue.resourceId;
+            mBackground = ContextCompat.getColor(context, R.color.white);
+            mSelectedBackground = ContextCompat.getColor(context, R.color.selection);
             mTextData = items;
         }
 
@@ -455,7 +456,6 @@ public class EditorFragment extends Fragment {
         class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
         View.OnLongClickListener{
 
-            //private final View mRootView;
             private final CardView mCard;
             private final TextView mLabel;
             private final TextView mInstruction;
@@ -463,9 +463,6 @@ public class EditorFragment extends Fragment {
 
             public ViewHolder(View view){
                 super(view);
-                //mRootView = view;
-                //mRootView.setOnClickListener(this);
-                //mRootView.setOnLongClickListener(this);
                 mCard = (CardView)view.findViewById(R.id.editor_item_cardview);
                 mCard.setOnLongClickListener(this);
                 mCard.setOnClickListener(this);
@@ -493,6 +490,7 @@ public class EditorFragment extends Fragment {
                     }
                     mCard.setCardBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
                     //view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
+
                 } else {
                     positionToEdit = pos;
                     launchGridActivity(Const.EDIT_INSTRUCTION);

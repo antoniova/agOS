@@ -83,7 +83,7 @@ public class GridActivity extends AppCompatActivity {
     public void finishWithResult(String instr){
         Intent result = new Intent();
         result.putExtra(Const.INSTRUCTION, instr);
-        setResult(Const.RESULT_OK, result);
+        setResult(RESULT_OK, result);
         finish();
     }
 
@@ -97,7 +97,7 @@ public class GridActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent){
         if(intent != null){
-            if(requestCode == Const.GET_ARGUMENTS && resultCode == Const.RESULT_OK){
+            if(requestCode == Const.GET_ARGUMENTS && resultCode == RESULT_OK){
                 finishWithResult(intent.getStringExtra(Const.RETURN_MSG));
             }
         }
