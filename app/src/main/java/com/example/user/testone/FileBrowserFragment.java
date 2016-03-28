@@ -1,8 +1,10 @@
 package com.example.user.testone;
 
 import android.app.Activity;
+import android.content.Context;
 import android.support.v4.app.ListFragment;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -12,8 +14,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -237,5 +242,51 @@ public class FileBrowserFragment extends ListFragment {
             Log.d(FRAGMENT_TAG, "filebrowser ActionMode finished");
         }
     };
+
+    /**
+     * Custom RecyclerView.Adapter to be used in this fragment
+     */
+    static private class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHolder>{
+
+        private List<String> mItems;
+
+        static public class ViewHolder extends RecyclerView.ViewHolder{
+
+            private final View mRoot;
+            private final ImageView mPicture;
+            private final TextView mText;
+
+            public ViewHolder(View view){
+                super(view);
+                mRoot = view;
+                mPicture = (ImageView) view.findViewById(R.id.file_icon);
+                mText = (TextView) view.findViewById(R.id.file_item_text);
+            }
+        }
+
+        // Constructor
+
+        public BrowserAdapter(Context context, List<String> items){
+            mItems = items;
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
+            return  new ViewHolder(
+                    LayoutInflater.from(parent.getContext()).inflate(R.layout.browser_list_item, parent, false)
+            );
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder viewHolder, final int position){
+
+        }
+
+        @Override
+        public int getItemCount(){
+            return 3;
+        }
+
+    }
 
 }
