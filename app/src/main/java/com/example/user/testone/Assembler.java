@@ -2,6 +2,7 @@ package com.example.user.testone;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -80,7 +81,8 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
     private int rdest, rsource, constant, address;
     private boolean error = false;
     private Tokenizer tokenizer;
-    private Integer lineNumber = 0;
+    private int lineNumber;
+    private int codeLineNumber;
     private String fileName;
     private String mErrorMessage;
     private boolean inSecondPass;
@@ -144,24 +146,23 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
         if(error){
             // display error message. Runs in main thread. Do nothing else
             if(mHost.getCurrentFocus() != null){
-                Snackbar.make(mHost.getCurrentFocus(), mErrorMessage, Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(mHost.getCurrentFocus(), mErrorMessage, Snackbar.LENGTH_LONG).show();
             } else {
-                Toast.makeText(mContext.getApplicationContext(), mErrorMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext.getApplicationContext(), mErrorMessage, Toast.LENGTH_LONG).show();
             }
         } else {
             if(mHost.getCurrentFocus() != null){
                 Snackbar.make(mHost.getCurrentFocus(), "Compilation finished successfully",
-                        Snackbar.LENGTH_SHORT).show();
+                        Snackbar.LENGTH_LONG).show();
             } else {
                 Toast.makeText(mContext.getApplicationContext(), "Compilation finished successfully",
-                        Toast.LENGTH_SHORT).show();
+                        Toast.LENGTH_LONG).show();
             }
         }
     }
 
     public void assemble(){
-        printOrigSourceCode();
-        /*
+        //printOrigSourceCode();
         if(firstPass()){
             if(secondPass()){
                 if(thirdPass()){
@@ -169,38 +170,42 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 }
             }
         }
-        */
     }
 
     /**
-     * First pass: Instruction disassembly and table symbol creation.
+     * First pass: Instruction breakdown and table symbol creation.
      * Instructions have the following format:  LABEL:;INSTRUCTION;#COMMENT
      * where the semicolons are used for easy parsing. This method serves two functions:
      * (I) It strips the comment and label sections from each line and stores the
      * remaining instruction in the strippedCode array list.
-     * (II) It builds the label symbol table,
+     * (II) It builds the symbol table using the stripped labels.
+     * Note that blank lines are not discarded.
      */
     public boolean firstPass(){
         error = false;
         lineNumber = 0;
+        codeLineNumber = 0;
+        String tempLabel, tempOpcode;
         for(String t : origSourceCode){
-            // First, let's extract the label field (if any).
             String [] tempArray = t.split(";");
-            if(!tempArray[0].isEmpty()){
-                // Next, extract label text. Discard semi-colon
-                String [] anotherTempArray = tempArray[0].split(":");
-                // Finally, add new entry into the symbol table. No duplicates allowed
-                if(!symbolTable.containsKey(anotherTempArray[0])){
-                    symbolTable.put(anotherTempArray[0], lineNumber);
+            tempLabel = tempArray[0];
+            tempOpcode = tempArray[1];
+            if(!tempLabel.isEmpty()){
+                tempLabel = tempLabel.substring(0, tempLabel.length() - 1);
+                // Add new entry into the symbol table. No duplicates allowed
+                if(!symbolTable.containsKey(tempLabel)){
+                    symbolTable.put(tempLabel, codeLineNumber);
                 }else{
-                    // Found duplicate. Label defined more than once.
-                    mErrorMessage = "Error: label \"" + anotherTempArray[0] +  "\" exists. ";
+                    // Found label duplicate
+                    mErrorMessage = "Error: label \"" + tempLabel +  "\" exists. ";
                     error = true;
                     break;
                 }
+                codeLineNumber++;
+            }else if(!tempOpcode.trim().isEmpty()){
+                codeLineNumber++;
             }
-            // Add opcode and its arguments to strippedCode array
-            strippedCode.add(tempArray[1]);
+            strippedCode.add(tempOpcode);
             lineNumber++;
         }
         return !error;
@@ -216,7 +221,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
         error = false;
         lineNumber = 0;
         for(String line : strippedCode){
-            if( !(line.trim()).isEmpty() ){      // empty lines are discarded
+            if( !(line.trim()).isEmpty() ){
                 tokenizer = new Tokenizer(line);
                 opcode = tokenizer.nextToken();
                 switch (opcode) {
@@ -243,14 +248,15 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                         break;
                     default:
                         sourceCode.add(line);
-                        lineNumber++;
                 }
+            } else {
+                sourceCode.add(line);
             }
             if(error){
                 mErrorMessage = "Error in second pass";
                 break;
             }
-            //lineNumber++;
+            lineNumber++;
         }
         inSecondPass = false;              // exiting second pass stage
         return !error;
@@ -334,7 +340,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + dest + " " + symbolTable.get(address));
-                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -367,7 +372,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + dest + " " + symbolTable.get(address));
-                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -570,7 +574,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
-                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -590,7 +593,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
-                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -610,7 +612,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
-                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -630,7 +631,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
-                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -650,7 +650,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
-                    lineNumber++;
                 }else{
                     error = true;
                 }

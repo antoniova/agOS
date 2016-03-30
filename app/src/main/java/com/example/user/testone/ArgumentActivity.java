@@ -166,7 +166,7 @@ public class ArgumentActivity extends Activity {
         switch(v.getId()){
             case R.id.ok_button:
                 if(dialog_type == Const.SAVE_SOURCE_DIALOG){
-                    checkFileName();
+                    verifyFileName();
                 } else {
                     buildInstruction();
                 }
@@ -179,7 +179,7 @@ public class ArgumentActivity extends Activity {
     private void buildInstruction(){
         String instr = ";" + opcode;
         if(label != null && label.length() > 0){
-            instr = label.getText().toString() + ":" + instr;
+            instr = label.getText().toString().trim() + ":" + instr;
         }
         if(reg0 != null){
             instr = instr + "  " + reg0;
@@ -189,7 +189,7 @@ public class ArgumentActivity extends Activity {
         }
         if(const_addr != null){
             if(const_addr.length() > 0){
-                instr = instr + "  " + const_addr.getText().toString();
+                instr = instr + "  " + const_addr.getText().toString().trim();
             }else{
                 Toast.makeText(getApplicationContext(), "You didn't enter a constant/address",
                         Toast.LENGTH_SHORT).show();
@@ -204,7 +204,7 @@ public class ArgumentActivity extends Activity {
         finishWithResult(instr);
     }
 
-    private void checkFileName(){
+    private void verifyFileName(){
         if( comment.length() > 0) {
             if (isProperFileName(comment.getText())) {
                 finishWithResult(comment.getText().toString());

@@ -9,13 +9,13 @@ public class Tokenizer {
     private boolean hasNext;
 
     Tokenizer(String str){
-        buffer = new String(str);
+        buffer = str;
         hasNext = true;
     }
 
     public String nextToken(){
 
-        String temp = new String(buffer.trim());
+        String temp = buffer.trim();
 
         // Look for white spaces
         String [] substring = temp.split("\\s", 2);
