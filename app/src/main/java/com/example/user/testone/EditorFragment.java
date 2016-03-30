@@ -112,9 +112,9 @@ public class EditorFragment extends Fragment {
             textbuffer = SavedInstanceState.getStringArrayList(STATE_ADAPTER);
         } else {
             textbuffer = new ArrayList<>();
-            //for(int i = 0; i < 20; i++){
-              //  textbuffer.add(null);
-            //}
+            for(int i = 0; i < 20; i++){
+                textbuffer.add("; ; ");
+            }
         }
 
         mRecyclerAdapter = new CustomAdapter(getActivity(), textbuffer);

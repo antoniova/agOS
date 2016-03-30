@@ -160,6 +160,8 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
     }
 
     public void assemble(){
+        printOrigSourceCode();
+        /*
         if(firstPass()){
             if(secondPass()){
                 if(thirdPass()){
@@ -167,6 +169,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 }
             }
         }
+        */
     }
 
     /**
@@ -209,11 +212,11 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
      * @return {@code true} if no errors are encountered; {@code false} otherwise.
      */
     public boolean secondPass(){
-        inSecondPass = true;                // entering second pass
+        inSecondPass = true;
         error = false;
         lineNumber = 0;
         for(String line : strippedCode){
-            if( !(line.trim()).isEmpty() ){ // empty lines will now be omitted
+            if( !(line.trim()).isEmpty() ){      // empty lines are discarded
                 tokenizer = new Tokenizer(line);
                 opcode = tokenizer.nextToken();
                 switch (opcode) {
@@ -240,13 +243,14 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                         break;
                     default:
                         sourceCode.add(line);
+                        lineNumber++;
                 }
             }
             if(error){
                 mErrorMessage = "Error in second pass";
                 break;
             }
-            lineNumber++;
+            //lineNumber++;
         }
         inSecondPass = false;              // exiting second pass stage
         return !error;
@@ -296,6 +300,11 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
             Log.d("OBJECT_CODE", i.toString());
     }
 
+    public void printOrigSourceCode(){
+        for(String t : origSourceCode)
+            Log.d("ORIG_CODE", t);
+    }
+
     void saveObjectCode() {
         String [] tempArray = fileName.split("\\.");
         String file = tempArray[0] + ".o";
@@ -325,6 +334,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + dest + " " + symbolTable.get(address));
+                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -357,6 +367,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + dest + " " + symbolTable.get(address));
+                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -559,6 +570,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
+                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -578,6 +590,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
+                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -597,6 +610,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
+                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -616,6 +630,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
+                    lineNumber++;
                 }else{
                     error = true;
                 }
@@ -635,6 +650,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 String address = tokenizer.nextToken();
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
+                    lineNumber++;
                 }else{
                     error = true;
                 }
