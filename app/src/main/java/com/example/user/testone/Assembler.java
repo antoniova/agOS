@@ -221,7 +221,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
         error = false;
         lineNumber = 0;
         for(String line : strippedCode){
-            if( !(line.trim()).isEmpty() ){
+            //if( !(line.trim()).isEmpty() ){
                 tokenizer = new Tokenizer(line);
                 opcode = tokenizer.nextToken();
                 switch (opcode) {
@@ -249,9 +249,9 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                     default:
                         sourceCode.add(line);
                 }
-            } else {
-                sourceCode.add(line);
-            }
+            //} else {
+             //   sourceCode.add(line);
+            //}
             if(error){
                 mErrorMessage = "Error in second pass";
                 break;
@@ -273,7 +273,9 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
         for(String line : sourceCode){
             tokenizer = new Tokenizer(line);
             opcode = tokenizer.nextToken();
-            instructionSet.get(opcode).exec();
+            if(!opcode.isEmpty()){
+                instructionSet.get(opcode).exec();
+            }
             if(error){
                 mErrorMessage = "Error in third pass";
                 break;
