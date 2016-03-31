@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
     // We may need these to call on the various fragments in the ViewPager
     EditorFragment editorHandle;
     FileBrowserFragment browserHandle;
-    //ThirdFragment resultHandle;
 
 
     @Override
@@ -203,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements PageFragmentListe
                 for (int i = 0; i < reg.length; i++)
                     results[i] = Integer.toString(reg[i]);
 
-                //ThirdFragment fragment = (ThirdFragment) getFragmentFromPager(2);
+
                 ResultFragment fragment = (ResultFragment) getFragmentFromPager(2);
                 if (fragment != null) {
                     mViewPager.setCurrentItem(RESULTS_FRAGMENT);

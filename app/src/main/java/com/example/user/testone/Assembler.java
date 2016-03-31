@@ -2,30 +2,17 @@ package com.example.user.testone;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.util.Log;
 import android.widget.Toast;
-
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
 
 public class Assembler extends AsyncTask<Void, Void, Void> {
 
@@ -177,7 +164,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
      * (I) It strips the comment and label sections from each line and stores the
      * remaining instruction in the strippedCode array list.
      * (II) It builds the symbol table using the stripped labels.
-     * Note that blank lines are not discarded.
      */
     public boolean firstPass(){
         error = false;
@@ -283,6 +269,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
      * @return   True if label successfully added to table. False otherwise.
      */
     private boolean addLabelToTable(String label){
+        // remove semicolon from label
         label = label.substring(0, label.length() - 1);
         if(!symbolTable.containsKey(label)){
             symbolTable.put(label, codeLineNumber);

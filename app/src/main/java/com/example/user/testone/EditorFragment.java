@@ -56,7 +56,6 @@ import java.util.Set;
 public class EditorFragment extends Fragment {
 
     public static final String ARG_SECTION_NUMBER = "section_0";
-    public static final String FRAGMENT_BAR_TITLE = "Text editor";
     public static final String STATE_ADAPTER =  "adapter_array";
     public static final String FRAGMENT_TAG = "editor_fragment_tag";
 
@@ -176,7 +175,6 @@ public class EditorFragment extends Fragment {
     public void getCorrectTitle(){
         mListener.changeActionBarTitle(currentFileName, sourceModified);
     }
-
 
     /**
      * Handles the menu and actionbar actions. This
@@ -332,21 +330,6 @@ public class EditorFragment extends Fragment {
     }
 
     /**
-     * Called when the user clicks on a list item. Used to edit an instruction.
-     * @param l the ListView object
-     * @param v the actual View item clicked
-     * @param position the position in the ListView of the View item
-     * @param id item id
-     */
-    /*
-    @Override
-    public void onListItemClick(ListView l, View v , int position, long id){
-        positionToEdit = position;
-        launchGridActivity(Const.EDIT_INSTRUCTION);
-    }
-    */
-
-    /**
      * Deletes the selected items in the text buffer. Care must be taken
      * that the items are deleted in descending order since textbuffer will be
      * resized after every remove() operation. Index values greater than the index previously
@@ -408,19 +391,6 @@ public class EditorFragment extends Fragment {
                 default:
                     return false;
             }
-        }
-
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            // This might not be the most efficient way to update the CAB
-            // but is fast enough
-            menu.clear();
-            if(selectionCount > 1)
-                mode.getMenuInflater().inflate(R.menu.context_many_selections, menu);
-            else
-                mode.getMenuInflater().inflate(R.menu.context_one_selection, menu);
-
-            return true;
         }
     };*/
 
