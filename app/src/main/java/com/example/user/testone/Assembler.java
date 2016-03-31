@@ -84,7 +84,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
     private int lineNumber;
     private int codeLineNumber;
     private String fileName;
-    private String mErrorMessage;
+    private String exitMessage;
     private boolean inSecondPass;
     Context mContext;
     private Activity mHost;
@@ -146,27 +146,25 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
         if(error){
             // display error message. Runs in main thread. Do nothing else
             if(mHost.getCurrentFocus() != null){
-                Snackbar.make(mHost.getCurrentFocus(), mErrorMessage, Snackbar.LENGTH_LONG).show();
+                Snackbar.make(mHost.getCurrentFocus(), exitMessage, Snackbar.LENGTH_LONG).show();
             } else {
-                Toast.makeText(mContext.getApplicationContext(), mErrorMessage, Toast.LENGTH_LONG).show();
+                Toast.makeText(mContext.getApplicationContext(), exitMessage, Toast.LENGTH_LONG).show();
             }
         } else {
             if(mHost.getCurrentFocus() != null){
-                Snackbar.make(mHost.getCurrentFocus(), "Compilation finished successfully",
-                        Snackbar.LENGTH_LONG).show();
+                Snackbar.make(mHost.getCurrentFocus(), exitMessage, Snackbar.LENGTH_LONG).show();
             } else {
-                Toast.makeText(mContext.getApplicationContext(), "Compilation finished successfully",
-                        Toast.LENGTH_LONG).show();
+                Toast.makeText(mContext.getApplicationContext(), exitMessage, Toast.LENGTH_LONG).show();
             }
         }
     }
 
     public void assemble(){
-        //printOrigSourceCode();
         if(firstPass()){
             if(secondPass()){
                 if(thirdPass()){
                     saveObjectCode();
+                    exitMessage = "Compilation finished successfully";
                 }
             }
         }
@@ -191,19 +189,20 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
             tempLabel = tempArray[0];
             tempOpcode = tempArray[1];
             if(!tempLabel.isEmpty()){
-                tempLabel = tempLabel.substring(0, tempLabel.length() - 1);
-                // Add new entry into the symbol table. No duplicates allowed
-                if(!symbolTable.containsKey(tempLabel)){
-                    symbolTable.put(tempLabel, codeLineNumber);
-                }else{
-                    // Found label duplicate
-                    mErrorMessage = "Error: label \"" + tempLabel +  "\" exists. ";
+                // add label to symbol table
+                if(!addLabelToTable(tempLabel)){
                     error = true;
+                    exitMessage = "Error: label \"" + tempLabel +  "\" exists. ";
                     break;
                 }
+                if(tempOpcode.trim().isEmpty()){
+                    tempOpcode = "noop";
+                }
                 codeLineNumber++;
-            }else if(!tempOpcode.trim().isEmpty()){
-                codeLineNumber++;
+            }else{
+                if(!tempOpcode.trim().isEmpty()){
+                    codeLineNumber++;
+                }
             }
             strippedCode.add(tempOpcode);
             lineNumber++;
@@ -213,52 +212,46 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
 
     /**
      * Second pass: Symbol resolution
-     *
-     * @return {@code true} if no errors are encountered; {@code false} otherwise.
+     * @return True if no errors are encountered. False otherwise.
      */
     public boolean secondPass(){
         inSecondPass = true;
         error = false;
         lineNumber = 0;
         for(String line : strippedCode){
-            //if( !(line.trim()).isEmpty() ){
-                tokenizer = new Tokenizer(line);
-                opcode = tokenizer.nextToken();
-                switch (opcode) {
-                    case "load":
-                        instructionSet.get(opcode).exec();
-                        break;
-                    case "store":
-                        instructionSet.get(opcode).exec();
-                        break;
-                    case "jump":
-                        instructionSet.get(opcode).exec();
-                        break;
-                    case "jumpl":
-                        instructionSet.get(opcode).exec();
-                        break;
-                    case "jumpe":
-                        instructionSet.get(opcode).exec();
-                        break;
-                    case "jumpg":
-                        instructionSet.get(opcode).exec();
-                        break;
-                    case "call":
-                        instructionSet.get(opcode).exec();
-                        break;
-                    default:
-                        sourceCode.add(line);
-                }
-            //} else {
-             //   sourceCode.add(line);
-            //}
+            tokenizer = new Tokenizer(line);
+            opcode = tokenizer.nextToken();
+            switch (opcode) {
+                case "load":
+                    instructionSet.get(opcode).exec();
+                    break;
+                case "store":
+                    instructionSet.get(opcode).exec();
+                    break;
+                case "jump":
+                    instructionSet.get(opcode).exec();
+                    break;
+                case "jumpl":
+                    instructionSet.get(opcode).exec();
+                    break;
+                case "jumpe":
+                    instructionSet.get(opcode).exec();
+                    break;
+                case "jumpg":
+                    instructionSet.get(opcode).exec();
+                    break;
+                case "call":
+                    instructionSet.get(opcode).exec();
+                    break;
+                default:
+                    sourceCode.add(line);
+            }
             if(error){
-                mErrorMessage = "Error in second pass";
                 break;
             }
             lineNumber++;
         }
-        inSecondPass = false;              // exiting second pass stage
+        inSecondPass = false;
         return !error;
     }
 
@@ -277,7 +270,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 instructionSet.get(opcode).exec();
             }
             if(error){
-                mErrorMessage = "Error in third pass";
                 break;
             }
             lineNumber++;
@@ -285,37 +277,26 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
         return !error;
     }
 
-    public void printSymbolTable(){
-        Set<String> set = symbolTable.keySet();
-
-        for(String i : set){
-            Log.d("SYMBOL_TABLE", i + ":" + symbolTable.get(i));
+    /**
+     * Adds a new entry into the symbol table. No duplicates are allowed.
+     * @param label  the label to input into the table
+     * @return   True if label successfully added to table. False otherwise.
+     */
+    private boolean addLabelToTable(String label){
+        label = label.substring(0, label.length() - 1);
+        if(!symbolTable.containsKey(label)){
+            symbolTable.put(label, codeLineNumber);
+            return true;
         }
+        return false;
     }
 
-    public void printStrippedCode(){
-        for(String t : strippedCode)
-            Log.d("STRIPPED_CODE", t);
-    }
-    public void printSourceCode(){
-        for(String t : sourceCode)
-            Log.d("SOURCE_CODE", t);
-    }
-
-    public void printObjectCode()
-    {
-        for(Short i : objectCode)
-            Log.d("OBJECT_CODE", i.toString());
-    }
-
-    public void printOrigSourceCode(){
-        for(String t : origSourceCode)
-            Log.d("ORIG_CODE", t);
-    }
-
-    void saveObjectCode() {
-        String [] tempArray = fileName.split("\\.");
-        String file = tempArray[0] + ".o";
+    /**
+     * Saves the compiled code to internal storage.
+     * Invoked if compilation finishes successfully.
+     */
+    private void saveObjectCode() {
+        String file = fileName.replace(".s", ".o");
         byte[] buf = new byte[2];
         try{
             FileOutputStream fos = mContext.openFileOutput(file, Context.MODE_PRIVATE);
@@ -331,6 +312,23 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
         }
     }
 
+    private boolean validAddress(){
+        return (address >= 0) && (address <= 255);
+    }
+
+    private boolean validConstant(){
+        return (constant >= -128) && (constant <= 128);
+    }
+
+    private void invalidAddressError(){
+        exitMessage = "Error in line: " + lineNumber + " : Invalid address value.";
+        error = true;
+    }
+
+    private void invalidConstantError(){
+        exitMessage = "Error in line: " + lineNumber + " : Invalid constant value.";
+        error = true;
+    }
 
     /**********************************************************
      *   INSTRUCTIONS
@@ -343,6 +341,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + dest + " " + symbolTable.get(address));
                 }else{
+                    exitMessage = "Error in line: " + lineNumber + ". Label: \"" + address + "\" not found.";
                     error = true;
                 }
             }else {
@@ -375,6 +374,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + dest + " " + symbolTable.get(address));
                 }else{
+                    exitMessage = "Error in line: " + lineNumber + ". Label: \"" + address + "\" not found.";
                     error = true;
                 }
             }else {
@@ -577,6 +577,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
                 }else{
+                    exitMessage = "Error in line: " + lineNumber + ". Label: \"" + address + "\" not found.";
                     error = true;
                 }
             }else {
@@ -596,6 +597,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
                 }else{
+                    exitMessage = "Error in line: " + lineNumber + ". Label: \"" + address + "\" not found.";
                     error = true;
                 }
             }else {
@@ -615,6 +617,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
                 }else{
+                    exitMessage = "Error in line: " + lineNumber + ". Label: \"" + address + "\" not found.";
                     error = true;
                 }
             }else {
@@ -634,6 +637,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
                 }else{
+                    exitMessage = "Error in line: " + lineNumber + ". Label: \"" + address + "\" not found.";
                     error = true;
                 }
             }else {
@@ -653,6 +657,7 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
                 if(symbolTable.containsKey(address)){
                     sourceCode.add(opcode + " " + symbolTable.get(address));
                 }else{
+                    exitMessage = "Error in line: " + lineNumber + ". Label: \"" + address + "\" not found.";
                     error = true;
                 }
             }else {
@@ -696,29 +701,6 @@ public class Assembler extends AsyncTask<Void, Void, Void> {
             objectCode.add((short)(NOOP_OP << 11));
         }
     };
-
-    /**********************************************************
-     * END OF INSTRUCTIONS
-     **********************************************************/
-
-
-    boolean validAddress(){
-        return (address >= 0) && (address <= 255);
-    }
-
-    boolean validConstant(){
-        return (constant >= -128) && (constant <= 128);
-    }
-
-    void invalidAddressError(){
-        error = true;
-        mErrorMessage = "Error in line " + lineNumber + " : Invalid address value.";
-    }
-
-    void invalidConstantError(){
-        error = true;
-        mErrorMessage = "Error in line " + lineNumber + " : Invalid constant value.";
-    }
 
 }
 

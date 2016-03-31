@@ -448,6 +448,7 @@ public class EditorFragment extends Fragment {
         // Constructor
         public CustomAdapter(Context context, List<String> items){
             mBackground = ContextCompat.getColor(context, R.color.white);
+            //mBackground = ContextCompat.getColor(context, R.color.primary_dark);
             mSelectedBackground = ContextCompat.getColor(context, R.color.selection);
             mTextData = items;
         }
