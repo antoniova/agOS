@@ -572,8 +572,7 @@ public class EditorFragment extends Fragment {
             if (mRecyclerAdapter.hasSelections()){
                 mRecyclerAdapter.clearSelections();
             }
-            //Log.d(FRAGMENT_TAG, "editor ActionMode finished");
-            mListener.changeActionBarTitle(currentFileName, sourceModified = true);
+            mListener.changeActionBarTitle(currentFileName, sourceModified);
         }
     }; // end of ActionMode.Callback mActionModeCallback
 

@@ -13,7 +13,7 @@
 
     <!-- Execute files -->
     <item
-        android:id="@+id/action_execute_selected"
+        android:id="@+id/action_execute_selection"
         android:title="@string/action_execute_selected"
         android:icon="@drawable/gear_icon"
         app:showAsAction="ifRoom" />
