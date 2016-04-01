@@ -48,6 +48,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
@@ -124,7 +125,7 @@ public class EditorFragment extends Fragment {
             currentFileName = SavedInstanceState.getString("FILE_NAME");
             selectionCount = SavedInstanceState.getInt("SELECTION_COUNT");
             positionToEdit = SavedInstanceState.getInt("EDIT_POSITION");
-            mRecyclerAdapter.mSelections = (HashSet<Integer>) SavedInstanceState.getSerializable("HASH_MAP");
+            mRecyclerAdapter.mSelections = (TreeSet<Integer>) SavedInstanceState.getSerializable("TREE_SET");
         }
         // So this fragment can add its own menu entries
         setHasOptionsMenu(true);
@@ -132,7 +133,7 @@ public class EditorFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstance){
-         return inflater.inflate(R.layout.editor_layout_alt, container, false);
+         return inflater.inflate(R.layout.editor_layout, container, false);
     }
 
     @Override
@@ -209,7 +210,7 @@ public class EditorFragment extends Fragment {
         outState.putString("FILE_NAME", currentFileName);
         outState.putInt("SELECTION_COUNT", selectionCount);
         outState.putInt("EDIT_POSITION", positionToEdit);
-        outState.putSerializable("HASH_MAP", mRecyclerAdapter.mSelections);
+        outState.putSerializable("TREE_SET", mRecyclerAdapter.mSelections);
         outState.putBoolean("ACTION_MODE_STATE", (mActionMode != null));
         super.onSaveInstanceState(outState);
     }
@@ -330,26 +331,6 @@ public class EditorFragment extends Fragment {
     }
 
     /**
-     * Deletes the selected items in the text buffer. Care must be taken
-     * that the items are deleted in descending order since textbuffer will be
-     * resized after every remove() operation. Index values greater than the index previously
-     * removed will point to invalid locations.
-     * @param set
-     */
-    void deleteSelectedItems(Set<Integer> set){
-        /*
-        Integer [] t = new Integer[set.size()];
-        set.toArray(t);
-        Arrays.sort(t, Collections.reverseOrder());
-        for(int i : t){
-            textbuffer.remove(i);
-        }
-        mAdapter.notifyDataSetChanged();
-        mListener.changeActionBarTitle(currentFileName, sourceModified = true);
-        */
-    }
-
-    /**
      * Returns the editor's text buffer
      * @return  the editor text buffer
      */
@@ -366,35 +347,6 @@ public class EditorFragment extends Fragment {
     }
 
     /**
-     * The MultiChoiceModeListener implementation
-     */
-    /*
-    AbsListView.MultiChoiceModeListener mModeListener = new AbsListView.MultiChoiceModeListener() {
-
-        @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            // Respond to clicks on the actions in the CAB
-            switch (item.getItemId()) {
-                case R.id.action_delete_file:
-                    deleteSelectedItems(mAdapter.getSelections());
-                    mode.finish();
-                    return true;
-                case R.id.action_insert_line:
-                    // There should only be a single item in the Set returned by
-                    // mAdapter.getSelections(), so iterating over a single-valued Set might not be optimal
-                    for(int i : mAdapter.getSelections())
-                        textbuffer.add(i, " ; ; ");
-                    mAdapter.notifyDataSetChanged();
-                    sourceModified = true;
-                    mode.finish();
-                    return true;
-                default:
-                    return false;
-            }
-        }
-    };*/
-
-    /**
      * The new adapter to be used with the recycler view
      */
     private class CustomAdapter extends
@@ -407,10 +359,10 @@ public class EditorFragment extends Fragment {
         /**
          * Keeps track of the selected list view items when in action mode
          */
-        private HashSet<Integer> mSelections = new HashSet<>();
+        private TreeSet<Integer> mSelections = new TreeSet<>();
 
         /**
-         * Our background drawables used with our {@link StateListDrawable}
+         * The backgrounds used when an item is selected and when it isn't
          */
         private int mBackground;
         private int mSelectedBackground;
@@ -418,7 +370,6 @@ public class EditorFragment extends Fragment {
         // Constructor
         public CustomAdapter(Context context, List<String> items){
             mBackground = ContextCompat.getColor(context, R.color.white);
-            //mBackground = ContextCompat.getColor(context, R.color.primary_dark);
             mSelectedBackground = ContextCompat.getColor(context, R.color.selection);
             mTextData = items;
         }
@@ -460,8 +411,6 @@ public class EditorFragment extends Fragment {
                         mActionMode.finish();
                     }
                     mCard.setCardBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
-                    //view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
-
                 } else {
                     positionToEdit = pos;
                     launchGridActivity(Const.EDIT_INSTRUCTION);
@@ -491,7 +440,6 @@ public class EditorFragment extends Fragment {
                     mActionMode = getActivity().startActionMode(mActionModeCallback);
                     mSelections.add(pos);
                 }
-                //view.setBackgroundResource(mSelections.contains(pos)? mSelectedBackground : mBackground);
                 mCard.setCardBackgroundColor(mSelections.contains(pos) ? mSelectedBackground : mBackground);
                 return true;
             }
@@ -514,11 +462,8 @@ public class EditorFragment extends Fragment {
             }catch (ArrayIndexOutOfBoundsException e){
                 Log.d("EDITOR_FRAGMENT", "array problem");
             }
-            //holder.mRootView.setBackgroundResource(mSelections.contains(position)?
-            //        mSelectedBackground : mBackground);
             holder.mCard.setCardBackgroundColor(mSelections.contains(position)?
                     mSelectedBackground : mBackground);
-
         }
 
         @Override
@@ -530,11 +475,6 @@ public class EditorFragment extends Fragment {
             mTextData.add(string);
             notifyItemInserted(mTextData.size() - 1);
 
-        }
-
-        public void removeItem(int position) {
-            mTextData.remove(position);
-            notifyItemRemoved(position);
         }
 
         public void setItem(int position, String string) {
@@ -552,12 +492,26 @@ public class EditorFragment extends Fragment {
 
         /**
          * Invoked when exiting Action Mode using the back button. Clears
-         * all selections and forces a full re-binding.
+         * all selections, but doesn't delete them, and forces a full re-binding.
          */
         public void clearSelections(){
             mSelections.clear();
-            // Full re-binding. Not most the efficient.
+            // Full re-binding. Not the most efficient.
             notifyDataSetChanged();
+        }
+
+        /**
+         * Deletes the selected items in the text buffer. Care must be taken
+         * that the items are deleted in descending order since textbuffer will be
+         * resized after every remove() operation. Index values greater than the index previously
+         * removed will point to invalid locations.
+         */
+        public void removeSelections(){
+            while(!mSelections.isEmpty()){
+                int position = mSelections.pollLast();
+                mTextData.remove(position);
+                notifyItemRemoved(position);
+            }
         }
 
         public boolean multipleItemsSelected(){
@@ -600,17 +554,15 @@ public class EditorFragment extends Fragment {
         // Called when the user selects a contextual menu item
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            /*
             switch (item.getItemId()) {
-                case R.id.action_delete_file:
-                    shareCurrentItem();
-                    mode.finish(); // Action picked, so close the CAB
+                case R.id.action_delete_selection:
+                    mRecyclerAdapter.removeSelections();
+                    sourceModified = true;
+                    mode.finish();
                     return true;
                 default:
                     return false;
             }
-            */
-            return true;
         }
 
         // Called when the user exits the action mode
@@ -620,7 +572,8 @@ public class EditorFragment extends Fragment {
             if (mRecyclerAdapter.hasSelections()){
                 mRecyclerAdapter.clearSelections();
             }
-            Log.d(FRAGMENT_TAG, "editor ActionMode finished");
+            //Log.d(FRAGMENT_TAG, "editor ActionMode finished");
+            mListener.changeActionBarTitle(currentFileName, sourceModified = true);
         }
     }; // end of ActionMode.Callback mActionModeCallback
 

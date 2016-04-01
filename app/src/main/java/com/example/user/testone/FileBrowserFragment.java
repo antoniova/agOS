@@ -206,7 +206,7 @@ public class FileBrowserFragment extends ListFragment {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             // Respond to clicks on the actions in the CAB
             switch (item.getItemId()) {
-                case R.id.action_delete_file:
+                case R.id.action_delete_selection:
                     deleteSelectedItems(mAdapter.getSelections());
                     mode.finish();
                     return true;
