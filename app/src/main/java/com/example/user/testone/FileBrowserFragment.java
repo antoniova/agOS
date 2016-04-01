@@ -3,7 +3,6 @@ package com.example.user.testone;
 import android.app.Activity;
 import android.content.Context;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ListFragment;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,18 +15,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -43,13 +36,9 @@ public class FileBrowserFragment extends Fragment {
     private static final String FRAGMENT_BAR_TITLE = "File Browser";
     private static final String FRAGMENT_TAG = "FILE_BROWSER";
 
-    OnFileActionListener mListener;
-    //FileBrowserCustomAdapter mAdapter;
-
-    ArrayList<String> fileList;
-
+    private OnFileActionListener mListener;
+    private ArrayList<String> fileList;
     private ActionMode mActionMode;
-    private RecyclerView mRecyclerView;
     private BrowserAdapter mNewAdapter;
 
     /**
@@ -64,6 +53,12 @@ public class FileBrowserFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * constructor
+     */
+    public FileBrowserFragment() {
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -73,79 +68,29 @@ public class FileBrowserFragment extends Fragment {
         } else {
             fileList = new ArrayList<>();
         }
-        // todo: change over to new adapter  DONE
-        //mAdapter = new FileBrowserCustomAdapter(getActivity(), R.layout.browser_list_item, fileList);
+
         mNewAdapter = new BrowserAdapter(getActivity(), fileList);
 
         if(savedInstanceState != null){
-            //mAdapter.mSelections = (HashMap<Integer,Boolean>) savedInstanceState.getSerializable("HASH_MAP");
             mNewAdapter.mSelections = (TreeSet<Integer>) savedInstanceState.getSerializable("TREE_SET");
         }
 
         setHasOptionsMenu(true);
-
-        //setListAdapter(mAdapter);
-    }
-
-    /**
-     * Empty public constructor
-     */
-    public FileBrowserFragment() {
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
-
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        return true;
-    }
-
-    /**
-     * Used to reload the file list.
-     */
-    public void reloadFileList(){
-        //TODO: change over to new adapter DONE
-        String [] files = getActivity().getFilesDir().list();
-        //mAdapter.clear();
-        mNewAdapter.clear();
-        for(String file : files){
-            mNewAdapter.addItem(file);
-        }
-            //mAdapter.add(file);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState){
-        outState.putStringArrayList(Const.STATE_ADAPTER, fileList);
-        //outState.putSerializable("HASH_MAP", mAdapter.mSelections);
-        outState.putSerializable("TREE_SET", mNewAdapter.mSelections);
-        outState.putBoolean("ACTION_MODE_STATE", (mActionMode != null));
-        super.onSaveInstanceState(outState);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        //View rootView = inflater.inflate(R.layout.file_browser_layout, container, false);
-        // todo : change over to new adapter  DONE
-        //return inflater.inflate(R.layout.file_browser_layout, container, false);
-        return inflater.inflate(R.layout.file_browser_layout_alt, container, false);
+        return inflater.inflate(R.layout.file_browser_layout, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // todo: delete when moved to new adapter
-        //getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-        //getListView().setMultiChoiceModeListener(mModeListener);
-
-        /* get a handle on the recycler view list and set it up */
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.browser_recycler_view);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(mRecyclerView.getContext()));
-        mRecyclerView.setAdapter(mNewAdapter);
+        /* get a handle on the recycler view and set it up */
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.browser_recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+        recyclerView.setAdapter(mNewAdapter);
 
         // Were we in Action Mode?
         if(savedInstanceState != null){
@@ -153,6 +98,20 @@ public class FileBrowserFragment extends Fragment {
                 mActionMode = getActivity().startActionMode(mActionModeCallback);
             }
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){}
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){return true;}
+
+    @Override
+    public void onSaveInstanceState(Bundle outState){
+        outState.putStringArrayList(Const.STATE_ADAPTER, fileList);
+        outState.putSerializable("TREE_SET", mNewAdapter.mSelections);
+        outState.putBoolean("ACTION_MODE_STATE", (mActionMode != null));
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -166,6 +125,17 @@ public class FileBrowserFragment extends Fragment {
             // The activity doesn't implement the callback interface, throw exception
             throw new ClassCastException(activity.toString() +
                     " must implement EditorNoticeListener");
+        }
+    }
+
+    /**
+     * Used to reload the file list.
+     */
+    public void reloadFileList(){
+        String [] files = getActivity().getFilesDir().list();
+        mNewAdapter.clear();
+        for(String file : files){
+            mNewAdapter.addItem(file);
         }
     }
 
@@ -221,7 +191,6 @@ public class FileBrowserFragment extends Fragment {
                         mActionMode.finish();
                     }
                     view.setBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
-                    //mCard.setCardBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
                 } else {
                     // Let's determine whether the file to open is a source file
                     // or an object file and invoke the appropriate callback method
@@ -251,7 +220,6 @@ public class FileBrowserFragment extends Fragment {
                     mActionMode = getActivity().startActionMode(mActionModeCallback);
                     mSelections.add(pos);
                 }
-                //mCard.setCardBackgroundColor(mSelections.contains(pos) ? mSelectedBackground : mBackground);
                 view.setBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
                 return true;
             }
@@ -276,6 +244,7 @@ public class FileBrowserFragment extends Fragment {
         public int getItemCount(){
             return mItems.size();
         }
+
         public void addItem(String string){
             mItems.add(string);
             notifyItemInserted(mItems.size() - 1);
@@ -345,7 +314,6 @@ public class FileBrowserFragment extends Fragment {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             // Inflate a menu resource providing context menu items
-            Log.d(FRAGMENT_TAG, "browser action mode created");
             mode.getMenuInflater().inflate(R.menu.context_execute_menu, menu);
             return true;
         }
@@ -356,7 +324,6 @@ public class FileBrowserFragment extends Fragment {
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
             return false;
-            //return true;
         }
 
         // Called when the user selects a contextual menu item
@@ -365,7 +332,6 @@ public class FileBrowserFragment extends Fragment {
             switch (item.getItemId()) {
                 case R.id.action_delete_selection:
                     mNewAdapter.removeSelections();
-                    //sourceModified = true;
                     mode.finish();
                     return true;
                 case R.id.action_execute_selection:
@@ -384,7 +350,6 @@ public class FileBrowserFragment extends Fragment {
             if (mNewAdapter.hasSelections()){
                 mNewAdapter.clearSelections();
             }
-            Log.d(FRAGMENT_TAG, "browser action mode killed");
         }
     }; // end of ActionMode.Callback mActionModeCallback
 
