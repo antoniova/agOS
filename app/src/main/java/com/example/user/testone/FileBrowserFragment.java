@@ -39,7 +39,7 @@ public class FileBrowserFragment extends Fragment {
     private OnFileActionListener mListener;
     private ArrayList<String> fileList;
     private ActionMode mActionMode;
-    private BrowserAdapter mNewAdapter;
+    private BrowserAdapter mAdapter;
 
     /**
      * Returns a new instance of this fragment for the given section
@@ -69,10 +69,10 @@ public class FileBrowserFragment extends Fragment {
             fileList = new ArrayList<>();
         }
 
-        mNewAdapter = new BrowserAdapter(getActivity(), fileList);
+        mAdapter = new BrowserAdapter(getActivity(), fileList);
 
         if(savedInstanceState != null){
-            mNewAdapter.mSelections = (TreeSet<Integer>) savedInstanceState.getSerializable("TREE_SET");
+            mAdapter.mSelections = (TreeSet<Integer>) savedInstanceState.getSerializable("TREE_SET");
         }
 
         setHasOptionsMenu(true);
@@ -90,7 +90,7 @@ public class FileBrowserFragment extends Fragment {
         /* get a handle on the recycler view and set it up */
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.browser_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
-        recyclerView.setAdapter(mNewAdapter);
+        recyclerView.setAdapter(mAdapter);
 
         // Were we in Action Mode?
         if(savedInstanceState != null){
@@ -109,7 +109,7 @@ public class FileBrowserFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState){
         outState.putStringArrayList(Const.STATE_ADAPTER, fileList);
-        outState.putSerializable("TREE_SET", mNewAdapter.mSelections);
+        outState.putSerializable("TREE_SET", mAdapter.mSelections);
         outState.putBoolean("ACTION_MODE_STATE", (mActionMode != null));
         super.onSaveInstanceState(outState);
     }
@@ -119,7 +119,6 @@ public class FileBrowserFragment extends Fragment {
         super.onAttach(activity);
         // Verify that the host activity (MainActivity) implements the callback interface
         try{
-            // Instantiate the PageFragmentListener so we can send events to the host
             mListener = (OnFileActionListener) activity;
         }catch(ClassCastException e){
             // The activity doesn't implement the callback interface, throw exception
@@ -133,9 +132,9 @@ public class FileBrowserFragment extends Fragment {
      */
     public void reloadFileList(){
         String [] files = getActivity().getFilesDir().list();
-        mNewAdapter.clear();
+        mAdapter.clear();
         for(String file : files){
-            mNewAdapter.addItem(file);
+            mAdapter.addItem(file);
         }
     }
 
@@ -331,7 +330,7 @@ public class FileBrowserFragment extends Fragment {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.action_delete_selection:
-                    mNewAdapter.removeSelections();
+                    mAdapter.removeSelections();
                     mode.finish();
                     return true;
                 case R.id.action_execute_selection:
@@ -347,8 +346,8 @@ public class FileBrowserFragment extends Fragment {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
-            if (mNewAdapter.hasSelections()){
-                mNewAdapter.clearSelections();
+            if (mAdapter.hasSelections()){
+                mAdapter.clearSelections();
             }
         }
     }; // end of ActionMode.Callback mActionModeCallback

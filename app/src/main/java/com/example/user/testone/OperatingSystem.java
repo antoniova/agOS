@@ -1,6 +1,7 @@
 package com.example.user.testone;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -26,8 +27,7 @@ import java.util.Queue;
 /**
  * Created by theone on 4/17/15.
  */
-//public class OperatingSystem implements Runnable{
-public class OperatingSystem extends Thread{
+public class OperatingSystem extends AsyncTask<Void, Void, Void>{
 
     static final int FRAME_COUNT = 32;
     static final int FRAME_SIZE = 8;
@@ -80,6 +80,16 @@ public class OperatingSystem extends Thread{
         readyQueue = new LinkedList<>();
         mHandler = handler;
         mVMachine = new VirtualMachine();
+    }
+
+    @Override
+    protected Void doInBackground(Void... voids){
+        return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void v){
+
     }
 
     public void execute(){
