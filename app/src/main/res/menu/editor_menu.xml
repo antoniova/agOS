@@ -7,7 +7,7 @@ tools:context=".MainActivity">
     <item
         android:id="@+id/action_save_text_file"
         android:title="@string/action_save_text_file"
-        android:icon="@drawable/ic_action_save"
+        android:icon="@drawable/menu_action_save"
         app:showAsAction="ifRoom" />
 
     <!-- Open source file -->
@@ -15,7 +15,6 @@ tools:context=".MainActivity">
     <item
         android:id="@+id/action_save_text_file_as"
         android:title="@string/action_save_as"
-        android:icon="@drawable/ic_action_collection"
         app:showAsAction="never" />
 
 

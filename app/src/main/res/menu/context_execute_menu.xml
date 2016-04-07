@@ -8,14 +8,14 @@
     <item
         android:id="@+id/action_delete_selection"
         android:title="@string/action_save_text_file"
-        android:icon="@drawable/ic_action_discard"
+        android:icon="@drawable/menu_action_delete"
         app:showAsAction="ifRoom" />
 
     <!-- Execute files -->
     <item
         android:id="@+id/action_execute_selection"
         android:title="@string/action_execute_selected"
-        android:icon="@drawable/gear_icon"
+        android:icon="@drawable/menu_action_execute"
         app:showAsAction="ifRoom" />
 
 

@@ -385,7 +385,8 @@ public class EditorFragment extends Fragment {
 
             public ViewHolder(View view){
                 super(view);
-                mCard = (CardView)view.findViewById(R.id.editor_item_cardview);
+                //mCard = (CardView)view.findViewById(R.id.editor_item_cardview);
+                mCard = (CardView) view;
                 mCard.setOnLongClickListener(this);
                 mCard.setOnClickListener(this);
                 mLabel = (TextView) view.findViewById(R.id.label_text);

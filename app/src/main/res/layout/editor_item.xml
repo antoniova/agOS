@@ -1,21 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<android.support.v7.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/editor_item_cardview"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-
-    <android.support.v7.widget.CardView
-        android:id="@+id/editor_item_cardview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="1dp"
-        android:layout_marginTop="0dp"
-        android:layout_marginBottom="0.5dp"
-        card_view:cardCornerRadius="0dp"
-        android:foreground="?attr/selectableItemBackground"
-        >
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="0.5dp"
+    card_view:cardCornerRadius="0dp"
+    android:foreground="?attr/selectableItemBackground">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -59,5 +51,5 @@
                 />
 
         </RelativeLayout>
-    </android.support.v7.widget.CardView>
-</LinearLayout>
+
+</android.support.v7.widget.CardView>

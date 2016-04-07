@@ -5,6 +5,7 @@ import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -163,13 +164,13 @@ public class FileBrowserFragment extends Fragment {
         public class ViewHolder extends RecyclerView.ViewHolder implements
                 View.OnClickListener, View.OnLongClickListener{
 
-            private final View mRoot;
+            private final CardView mRoot;
             private final ImageView mPicture;
             private final TextView mText;
 
             public ViewHolder(View view){
                 super(view);
-                mRoot = view;
+                mRoot = (CardView) view;
                 mRoot.setOnClickListener(this);
                 mRoot.setOnLongClickListener(this);
                 mPicture = (ImageView) view.findViewById(R.id.file_icon);
@@ -189,7 +190,7 @@ public class FileBrowserFragment extends Fragment {
                     if (mSelections.isEmpty()) {
                         mActionMode.finish();
                     }
-                    view.setBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
+                    mRoot.setCardBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
                 } else {
                     // Let's determine whether the file to open is a source file
                     // or an object file and invoke the appropriate callback method
@@ -219,7 +220,7 @@ public class FileBrowserFragment extends Fragment {
                     mActionMode = getActivity().startActionMode(mActionModeCallback);
                     mSelections.add(pos);
                 }
-                view.setBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
+                mRoot.setCardBackgroundColor(mSelections.contains(pos)? mSelectedBackground : mBackground);
                 return true;
             }
         }
@@ -227,7 +228,7 @@ public class FileBrowserFragment extends Fragment {
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
             return new ViewHolder( LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.browser_list_item, parent, false) );
+                    .inflate(R.layout.browser_list_item_alt, parent, false) );
         }
 
         @Override
@@ -235,8 +236,8 @@ public class FileBrowserFragment extends Fragment {
             viewHolder.mText.setText(mItems.get(position));
             viewHolder.mPicture.setImageResource( mItems.get(position).contains(".s")?
                     R.drawable.asm_file_icon : R.drawable.obj_file_icon );
-            viewHolder.mRoot.setBackgroundColor( mSelections.contains(position)?
-                    mSelectedBackground : mBackground );
+            viewHolder.mRoot.setCardBackgroundColor( mSelections.contains(position)?
+            mSelectedBackground: mBackground);
         }
 
         @Override
