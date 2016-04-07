@@ -5,11 +5,21 @@ package com.example.user.testone;
  */
 public class PageTable {
 
+    /*
+    The actual page table. Each entry has three fields: frame number,
+    dirty bit and valid bit.
+    |____frame_____|_valid bit_|_dirty bit_|
+    |______________|___________|___________|
+    |______________|___________|___________|
+     */
     class TableEntry{
         public boolean dirtyBit;
         public boolean validBit;
         public int frame;
     }
+
+    TableEntry [] table;
+
 
     static final int IN_PAGE_OFFSET_MASK = 7;
 
@@ -17,14 +27,6 @@ public class PageTable {
     static final int PAGE_FAULT = -1;
 
 
-    /*
-    The actual page table. Each entry has three fields: frame number,
-    dirty bit and valid bit.
-    |_real address_|_valid bit_|_dirty bit_|
-    |______________|___________|___________|
-    |______________|___________|___________|
-     */
-    TableEntry [] table;
 
     int pageNumber = 0;
     int referenceCount = 0;
@@ -32,18 +34,10 @@ public class PageTable {
     int hitCount = 0;
     int faultAddress = 0;
 
-    /**
-     * Allocates the correct page table size according to the
-     * program size
-     * @param progSize
-     */
-    public void setTableSize(int progSize){
-        if(progSize%8 > 0) {
-            table = new TableEntry[(progSize/8) + 1];
-        }
-        else {
-            table = new TableEntry[progSize/8];
-        }
+    // constructor
+    public PageTable(int programSize){
+        int size = ((programSize % 8) == 0)? programSize/8 : programSize/8 + 1;
+        table = new TableEntry[size];
     }
 
     /**

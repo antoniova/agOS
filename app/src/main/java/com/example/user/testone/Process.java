@@ -15,9 +15,8 @@ import java.io.RandomAccessFile;
 public class Process {
 
     // Identification data
-    int processId;
-    int id;
-    String name;
+    private int processId;
+    private String processName;
 
     // state
     int programCounter;
@@ -43,39 +42,29 @@ public class Process {
 
     // some other data
     int timeSlice;
-    int programSize;
+    int programSize = 0;
     boolean pagedOut;
     FileOutputStream fos;
     FileInputStream fin;
     RandomAccessFile accessFile;
 
-
-    private Context mContext;
-
-    /**
-     * Constructor
-     */
-    Process(String processName, Context context){
-        this.name = processName;
-        mContext = context;
-        programSize = 0;
-    }
+    //private Context mContext;
 
     /**
      * Constructor
      */
-    Process(String processName, int processId, Context context){
-        name = processName;
-        id = processId;
-        mContext = context;
-        programSize = 0;
+    Process(String processName, int processId, int size){
+        this.processName = processName;
+        this.processId = processId;
+        setPageTable(size);
     }
 
     /**
      * Calculates the size of the page table
      * @throws IOException
      */
-    public void setPageTableSize() throws IOException{
+    public void setPageTable(int programSize){
+        /*
         try {
             FileInputStream fis = mContext.openFileInput(name + ".o");
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
@@ -86,7 +75,8 @@ public class Process {
         } catch (IOException e) {
             // Let's handle this further up the call stack
             throw e;
-        }
+        }*/
+        if( programSize < 8 )
     }
 
 }

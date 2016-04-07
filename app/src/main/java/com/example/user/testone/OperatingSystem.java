@@ -71,14 +71,13 @@ public class OperatingSystem extends AsyncTask<Void, Void, Void>{
     Process runningProcess;
     VirtualMachine mVMachine;
 
-    OperatingSystem(List<String> fileList, Handler handler, Context context){
+    OperatingSystem(Context context, String[] fileList){
         mContext = context;
         objectFileList = new ArrayList<>(fileList);
         staticTaskVector = new LinkedList<>();
         taskVector = new LinkedList<>();
         freeFrameList = new LinkedList<>();
         readyQueue = new LinkedList<>();
-        mHandler = handler;
         mVMachine = new VirtualMachine();
     }
 
