@@ -71,7 +71,7 @@ public class OperatingSystem extends AsyncTask<Void, Void, Void>{
     Process runningProcess;
     VirtualMachine mVMachine;
 
-    OperatingSystem(Context context, String[] fileList){
+    OperatingSystem(Context context, List[] fileList){
         mContext = context;
         objectFileList = new ArrayList<>(fileList);
         staticTaskVector = new LinkedList<>();
