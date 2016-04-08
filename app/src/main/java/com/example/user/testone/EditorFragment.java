@@ -307,6 +307,7 @@ public class EditorFragment extends Fragment {
         } catch (IOException e) {
             // Load failed. Let user know and don't make any changes to editor
             Toast.makeText(getActivity(), "Unable to open file", Toast.LENGTH_SHORT).show();
+            return;
         }
         // Successful load, copy to editor's text buffer
         mRecyclerAdapter.clear();

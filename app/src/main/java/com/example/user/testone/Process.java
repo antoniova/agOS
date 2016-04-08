@@ -15,8 +15,8 @@ import java.io.RandomAccessFile;
 public class Process {
 
     // Identification data
-    private int processId;
-    private String processName;
+    int id;
+    String name;
 
     // state
     int programCounter;
@@ -54,9 +54,9 @@ public class Process {
      * Constructor
      */
     Process(String processName, int processId, int size){
-        this.processName = processName;
-        this.processId = processId;
-        setPageTable(size);
+        name = processName;
+        id = processId;
+        pageTable = new PageTable(size);
     }
 
     /**
@@ -76,7 +76,6 @@ public class Process {
             // Let's handle this further up the call stack
             throw e;
         }*/
-        if( programSize < 8 )
     }
 
 }

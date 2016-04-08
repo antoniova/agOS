@@ -67,13 +67,12 @@ public class OperatingSystem extends AsyncTask<Void, Void, Void>{
     Queue<Process> waitQueue;
 
     Context mContext;
-    Handler mHandler;
     Process runningProcess;
     VirtualMachine mVMachine;
 
     OperatingSystem(Context context, List[] fileList){
         mContext = context;
-        objectFileList = new ArrayList<>(fileList);
+        //objectFileList = new ArrayList<>(fileList);
         staticTaskVector = new LinkedList<>();
         taskVector = new LinkedList<>();
         freeFrameList = new LinkedList<>();
@@ -116,7 +115,7 @@ public class OperatingSystem extends AsyncTask<Void, Void, Void>{
         int pid = 1;
         for (String name : objectFileList) {
             String[] temp = name.split("\\.");
-            staticTaskVector.add(new Process(temp[0], pid++, mContext));
+            //staticTaskVector.add(new Process(temp[0], pid++, mContext));
         }
 
         // Let's populate the temporary process list
@@ -125,9 +124,9 @@ public class OperatingSystem extends AsyncTask<Void, Void, Void>{
 
     }
 
-
-    private void loadPage(int  processId, int frame, int page){
-        Process process = findProcess(processId);
+    /*n
+    private void loadPage(Process process, int  processId, int frame, int page){
+        //Process process = findProcess(processId);
         int startAddress = frame * FRAME_SIZE;
         try {
             RandomAccessFile file = new RandomAccessFile(process.name + ".o", "rw");
@@ -153,9 +152,7 @@ public class OperatingSystem extends AsyncTask<Void, Void, Void>{
         mVMachine.invertedTable[frame].pageNumber = page;
         mVMachine.invertedTable[frame].pid = processId;
 
-    }
-
-
+    }*/
 
 
     /**
@@ -167,7 +164,7 @@ public class OperatingSystem extends AsyncTask<Void, Void, Void>{
      */
     private Process findProcess(int processId){
         for(Process t : taskVector){
-            if(t.processId == processId)
+            if(t.id == processId)
                 return t;
         }
         return null;
@@ -338,6 +335,72 @@ public class OperatingSystem extends AsyncTask<Void, Void, Void>{
             Log.d("MAIN_ACTIVITY", "File: " + file.toString() + " does not exist.");
         }
     }
+
+
+    static private class Process{
+        // Identification data
+        int id;
+        String name;
+
+        // state
+        int programCounter;
+        int instructionReg;
+        int statusReg;
+        int stackPointer;
+        int base;
+        int limit;
+        int[] register;
+        int stackSize;
+        int topOfStack;
+        PageTable pageTable;
+        int clock;
+
+        // statistical data
+        int cpuTime;
+        int waitTime;
+        int turnAroundTime;
+        int ioTime;
+        int interruptTime;
+        int oldTime;
+
+
+        // some other data
+        int timeSlice;
+        int programSize = 0;
+        boolean pagedOut;
+        RandomAccessFile accessFile;
+
+        //private Context mContext;
+
+        /**
+         * Constructor
+         */
+        Process(String processName, int processId, int size){
+            name = processName;
+            id = processId;
+            pageTable = new PageTable(size);
+        }
+
+        /**
+         * Calculates the size of the page table
+         * @throws IOException
+         */
+        public void setPageTable(int programSize){
+        /*
+        try {
+            FileInputStream fis = mContext.openFileInput(name + ".o");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+            String line;
+            while ((line = reader.readLine()) != null)
+                programSize++;
+            reader.close();
+        } catch (IOException e) {
+            // Let's handle this further up the call stack
+            throw e;
+        }*/
+        }
+
+    } // end of Process class
 
 
 }

@@ -14,7 +14,7 @@
     <item
         android:id="@+id/action_insert_line"
         android:title="@string/action_insert_line"
-        android:icon="@drawable/ic_action_new"
+        android:icon="@drawable/menu_action_insert"
         app:showAsAction="ifRoom" />
 
 </menu>
